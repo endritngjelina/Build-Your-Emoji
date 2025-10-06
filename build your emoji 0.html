@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Builder Workshop - Professional Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 280px;
+            gap: 24px;
+            min-height: 100vh;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .component-panel {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+        }
+
+        .canvas-area {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        #emojiCanvas {
+            display: block;
+            cursor: crosshair;
+            border-radius: 20px;
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+        }
+
+        .component-item {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 24px;
+            background: white;
+        }
+
+        .component-item:hover {
+            border-color: #667eea;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .component-item.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .color-picker {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .color-item {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .color-item:hover {
+            transform: scale(1.2);
+        }
+
+        .color-item.selected {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .slider-control {
+            margin: 16px 0;
+        }
+
+        .slider-control label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            outline: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .layers-panel {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .layer-item:hover {
+            border-color: #667eea;
+            transform: translateX(4px);
+        }
+
+        .layer-item.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .layer-controls {
+            display: flex;
+            gap: 4px;
+        }
+
+        .layer-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 4px;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .layer-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .export-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .export-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .export-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .export-btn.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .export-btn.secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .animation-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .animation-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .animation-btn:hover, .animation-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .preset-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .preset-item {
+            aspect-ratio: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .preset-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .stats-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+
+        .float { animation: float 3s ease-in-out infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .rotate { animation: rotate 4s linear infinite; }
+        .bounce { animation: bounce 2s ease-in-out infinite; }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .header {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel header">
+            <h1>🎨 Emoji Builder Workshop</h1>
+            <p>Professional Creative Tool - Build, Animate & Export Custom Emojis</p>
+        </div>
+
+        <!-- Components Panel -->
+        <div class="panel component-panel">
+            <div class="section">
+                <h3>🏗️ Base Shapes</h3>
+                <div class="component-grid" id="baseShapes"></div>
+            </div>
+
+            <div class="section">
+                <h3>👀 Eyes</h3>
+                <div class="component-grid" id="eyeComponents"></div>
+            </div>
+
+            <div class="section">
+                <h3>👄 Mouths</h3>
+                <div class="component-grid" id="mouthComponents"></div>
+            </div>
+
+            <div class="section">
+                <h3>👃 Noses</h3>
+                <div class="component-grid" id="noseComponents"></div>
+            </div>
+
+            <div class="section">
+                <h3>🎨 Colors</h3>
+                <div class="color-picker" id="colorPicker"></div>
+            </div>
+
+            <div class="section">
+                <h3>⚡ Animations</h3>
+                <div class="animation-controls">
+                    <div class="animation-btn" data-animation="none">None</div>
+                    <div class="animation-btn" data-animation="float">Float</div>
+                    <div class="animation-btn" data-animation="pulse">Pulse</div>
+                    <div class="animation-btn" data-animation="rotate">Rotate</div>
+                    <div class="animation-btn" data-animation="bounce">Bounce</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📐 Size Controls</h3>
+                <div class="slider-control">
+                    <label>Scale: <span id="scaleValue">100%</span></label>
+                    <input type="range" class="slider" id="scaleSlider" min="50" max="200" value="100">
+                </div>
+                <div class="slider-control">
+                    <label>Rotation: <span id="rotationValue">0°</span></label>
+                    <input type="range" class="slider" id="rotationSlider" min="0" max="360" value="0">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🎭 Presets</h3>
+                <div class="preset-gallery">
+                    <div class="preset-item" data-preset="happy">😊</div>
+                    <div class="preset-item" data-preset="cool">😎</div>
+                    <div class="preset-item" data-preset="love">😍</div>
+                    <div class="preset-item" data-preset="surprised">😲</div>
+                    <div class="preset-item" data-preset="wink">😉</div>
+                    <div class="preset-item" data-preset="tongue">😛</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="panel canvas-area">
+            <div class="canvas-controls">
+                <button class="control-btn" id="clearCanvas">🗑️ Clear</button>
+                <button class="control-btn" id="undoBtn">↶ Undo</button>
+                <button class="control-btn" id="redoBtn">↷ Redo</button>
+                <button class="control-btn" id="randomizeBtn">🎲 Random</button>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="emojiCanvas" width="400" height="400"></canvas>
+            </div>
+
+            <div class="export-section">
+                <h3>📤 Export Options</h3>
+                <div class="export-buttons">
+                    <button class="export-btn primary" id="exportPNG">Download PNG</button>
+                    <button class="export-btn secondary" id="exportSVG">Download SVG</button>
+                    <button class="export-btn secondary" id="copyToClipboard">📋 Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layers Panel -->
+        <div class="panel layers-panel">
+            <div class="section">
+                <h3>📚 Layers</h3>
+                <div id="layersList"></div>
+            </div>
+
+            <div class="section">
+                <h3>📊 Properties</h3>
+                <div class="slider-control">
+                    <label>Opacity: <span id="opacityValue">100%</span></label>
+                    <input type="range" class="slider" id="opacitySlider" min="0" max="100" value="100">
+                </div>
+                <div class="slider-control">
+                    <label>X Position: <span id="xPosValue">200px</span></label>
+                    <input type="range" class="slider" id="xPosSlider" min="0" max="400" value="200">
+                </div>
+                <div class="slider-control">
+                    <label>Y Position: <span id="yPosValue">200px</span></label>
+                    <input type="range" class="slider" id="yPosSlider" min="0" max="400" value="200">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🔧 Advanced</h3>
+                <div class="slider-control">
+                    <label>Blur: <span id="blurValue">0px</span></label>
+                    <input type="range" class="slider" id="blurSlider" min="0" max="20" value="0">
+                </div>
+                <div class="slider-control">
+                    <label>Saturation: <span id="saturationValue">100%</span></label>
+                    <input type="range" class="slider" id="saturationSlider" min="0" max="200" value="100">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-panel" id="statsPanel">
+        Layers: 0 | Canvas: 400×400 | FPS: 60
+    </div>
+
+    <script>
+        class EmojiBuilder {
+            constructor() {
+                this.canvas = document.getElementById('emojiCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.layers = [];
+                this.history = [];
+                this.historyIndex = -1;
+                this.selectedLayer = null;
+                this.currentColor = '#FFD700';
+                this.currentAnimation = 'none';
+                this.animationId = null;
+                this.isDragging = false;
+                this.dragStart = { x: 0, y: 0 };
+                
+                this.components = {
+                    bases: ['⭕', '🟡', '🟠', '🔴', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤'],
+                    eyes: ['👀', '👁️', '😍', '😎', '🤓', '😴', '😵', '🤤', '😉', '😑'],
+                    mouths: ['😀', '😃', '😄', '😁', '😊', '🙂', '😐', '😕', '😞', '😢'],
+                    noses: ['👃', '🐽', '👺', '🤡', '🎭', '😷', '🤥', '🤧', '😤', '😮‍💨']
+                };
+
+                this.colors = [
+                    '#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+                    '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471',
+                    '#82E0AA', '#F1948A', '#85C1E9', '#D7DBDD', '#2C3E50', '#E74C3C'
+                ];
+
+                this.presets = {
+                    happy: [
+                        { type: 'base', content: '🟡', x: 200, y: 200, scale: 150 },
+                        { type: 'eyes', content: '😊', x: 180, y: 180, scale: 80 },
+                        { type: 'eyes', content: '😊', x: 220, y: 180, scale: 80 },
+                        { type: 'mouth', content: '😄', x: 200, y: 230, scale: 100 }
+                    ],
+                    cool: [
+                        { type: 'base', content: '🟡', x: 200, y: 200, scale: 150 },
+                        { type: 'eyes', content: '😎', x: 200, y: 190, scale: 120 },
+                        { type: 'mouth', content: '😎', x: 200, y: 230, scale: 80 }
+                    ],
+                    love: [
+                        { type: 'base', content: '🟡', x: 200, y: 200, scale: 150 },
+                        { type: 'eyes', content: '😍', x: 200, y: 190, scale: 120 },
+                        { type: 'mouth', content: '😊', x: 200, y: 230, scale: 80 }
+                    ],
+                    surprised: [
+                        { type: 'base', content: '🟡', x: 200, y: 200, scale: 150 },
+                        { type: 'eyes', content: '😲', x: 200, y: 185, scale: 100 },
+                        { type: 'mouth', content: '😲', x: 200, y: 235, scale: 90 }
+                    ],
+                    wink: [
+                        { type: 'base', content: '🟡', x: 200, y: 200, scale: 150 },
+                        { type: 'eyes', content: '😉', x: 200, y: 190, scale: 120 },
+                        { type: 'mouth', content: '😊', x: 200, y: 230, scale: 80 }
+                    ],
+                    tongue: [
+                        { type: 'base', content: '🟡', x: 200, y: 200, scale: 150 },
+                        { type: 'eyes', content: '😛', x: 200, y: 185, scale: 100 },
+                        { type: 'mouth', content: '😛', x: 200, y: 235, scale: 90 }
+                    ]
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.setupComponents();
+                this.setupEventListeners();
+                this.setupCanvas();
+                this.render();
+                this.updateStats();
+            }
+
+            setupComponents() {
+                this.renderComponentGrid('baseShapes', this.components.bases);
+                this.renderComponentGrid('eyeComponents', this.components.eyes);
+                this.renderComponentGrid('mouthComponents', this.components.mouths);
+                this.renderComponentGrid('noseComponents', this.components.noses);
+                this.renderColorPicker();
+            }
+
+            renderComponentGrid(containerId, items) {
+                const container = document.getElementById(containerId);
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'component-item';
+                    div.textContent = item;
+                    div.addEventListener('click', () => this.addComponent(item));
+                    container.appendChild(div);
+                });
+            }
+
+            renderColorPicker() {
+                const container = document.getElementById('colorPicker');
+                this.colors.forEach(color => {
+                    const div = document.createElement('div');
+                    div.className = 'color-item';
+                    div.style.backgroundColor = color;
+                    div.addEventListener('click', () => this.selectColor(color));
+                    container.appendChild(div);
+                });
+            }
+
+            setupEventListeners() {
+                // Canvas interactions
+                this.canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.onMouseUp.bind(this));
+                this.canvas.addEventListener('click', this.onCanvasClick.bind(this));
+
+                // Controls
+                document.getElementById('clearCanvas').addEventListener('click', () => this.clearCanvas());
+                document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+                document.getElementById('redoBtn').addEventListener('click', () => this.redo());
+                document.getElementById('randomizeBtn').addEventListener('click', () => this.randomize());
+
+                // Export buttons
+                document.getElementById('exportPNG').addEventListener('click', () => this.exportPNG());
+                document.getElementById('exportSVG').addEventListener('click', () => this.exportSVG());
+                document.getElementById('copyToClipboard').addEventListener('click', () => this.copyToClipboard());
+
+                // Animation controls
+                document.querySelectorAll('.animation-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.animation-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.setAnimation(e.target.dataset.animation);
+                    });
+                });
+
+                // Sliders
+                this.setupSlider('scaleSlider', 'scaleValue', '%', this.updateSelectedLayer.bind(this));
+                this.setupSlider('rotationSlider', 'rotationValue', '°', this.updateSelectedLayer.bind(this));
+                this.setupSlider('opacitySlider', 'opacityValue', '%', this.updateSelectedLayer.bind(this));
+                this.setupSlider('xPosSlider', 'xPosValue', 'px', this.updateSelectedLayer.bind(this));
+                this.setupSlider('yPosSlider', 'yPosValue', 'px', this.updateSelectedLayer.bind(this));
+                this.setupSlider('blurSlider', 'blurValue', 'px', this.updateSelectedLayer.bind(this));
+                this.setupSlider('saturationSlider', 'saturationValue', '%', this.updateSelectedLayer.bind(this));
+
+                // Presets
+                document.querySelectorAll('.preset-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        this.loadPreset(e.target.dataset.preset);
+                    });
+                });
+            }
+
+            setupSlider(sliderId, valueId, suffix, callback) {
+                const slider = document.getElementById(sliderId);
+                const value = document.getElementById(valueId);
+                slider.addEventListener('input', (e) => {
+                    value.textContent = e.target.value + suffix;
+                    if (callback) callback();
+                });
+            }
+
+            setupCanvas() {
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, 400, 400);
+            }
+
+            addComponent(component) {
+                const layer = {
+                    id: Date.now(),
+                    type: 'component',
+                    content: component,
+                    x: 200,
+                    y: 200,
+                    scale: 100,
+                    rotation: 0,
+                    opacity: 100,
+                    color: this.currentColor,
+                    blur: 0,
+                    saturation: 100,
+                    animation: this.currentAnimation
+                };
+
+                this.layers.push(layer);
+                this.saveState();
+                this.updateLayersList();
+                this.render();
+                this.updateStats();
+            }
+
+            selectColor(color) {
+                document.querySelectorAll('.color-item').forEach(item => item.classList.remove('selected'));
+                event.target.classList.add('selected');
+                this.currentColor = color;
+                
+                if (this.selectedLayer) {
+                    this.selectedLayer.color = color;
+                    this.render();
+                }
+            }
+
+            setAnimation(animation) {
+                this.currentAnimation = animation;
+                if (this.selectedLayer) {
+                    this.selectedLayer.animation = animation;
+                    this.applyAnimation();
+                }
+            }
+
+            applyAnimation() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+
+                const animate = () => {
+                    this.render();
+                    this.animationId = requestAnimationFrame(animate);
+                };
+
+                animate();
+            }
+
+            onMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const layer = this.getLayerAt(x, y);
+                if (layer) {
+                    this.selectedLayer = layer;
+                    this.isDragging = true;
+                    this.dragStart = { x: x - layer.x, y: y - layer.y };
+                    this.updateLayersList();
+                    this.updatePropertyControls();
+                }
+            }
+
+            onMouseMove(e) {
+                if (!this.isDragging || !this.selectedLayer) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                this.selectedLayer.x = x - this.dragStart.x;
+                this.selectedLayer.y = y - this.dragStart.y;
+
+                this.render();
+                this.updatePropertyControls();
+            }
+
+            onMouseUp() {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    this.saveState();
+                }
+            }
+
+            onCanvasClick(e) {
+                if (!this.isDragging) {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const layer = this.getLayerAt(x, y);
+                    this.selectedLayer = layer;
+                    this.updateLayersList();
+                    this.updatePropertyControls();
+                }
+            }
+
+            getLayerAt(x, y) {
+                for (let i = this.layers.length - 1; i >= 0; i--) {
+                    const layer = this.layers[i];
+                    const size = layer.scale || 100;
+                    const halfSize = size / 2;
+                    
+                    if (x >= layer.x - halfSize && x <= layer.x + halfSize &&
+                        y >= layer.y - halfSize && y <= layer.y + halfSize) {
+                        return layer;
+                    }
+                }
+                return null;
+            }
+
+            updateSelectedLayer() {
+                if (!this.selectedLayer) return;
+
+                const scale = document.getElementById('scaleSlider').value;
+                const rotation = document.getElementById('rotationSlider').value;
+                const opacity = document.getElementById('opacitySlider').value;
+                const x = document.getElementById('xPosSlider').value;
+                const y = document.getElementById('yPosSlider').value;
+                const blur = document.getElementById('blurSlider').value;
+                const saturation = document.getElementById('saturationSlider').value;
+
+                this.selectedLayer.scale = parseInt(scale);
+                this.selectedLayer.rotation = parseInt(rotation);
+                this.selectedLayer.opacity = parseInt(opacity);
+                this.selectedLayer.x = parseInt(x);
+                this.selectedLayer.y = parseInt(y);
+                this.selectedLayer.blur = parseInt(blur);
+                this.selectedLayer.saturation = parseInt(saturation);
+
+                this.render();
+            }
+
+            updatePropertyControls() {
+                if (!this.selectedLayer) return;
+
+                document.getElementById('scaleSlider').value = this.selectedLayer.scale || 100;
+                document.getElementById('rotationSlider').value = this.selectedLayer.rotation || 0;
+                document.getElementById('opacitySlider').value = this.selectedLayer.opacity || 100;
+                document.getElementById('xPosSlider').value = this.selectedLayer.x || 200;
+                document.getElementById('yPosSlider').value = this.selectedLayer.y || 200;
+                document.getElementById('blurSlider').value = this.selectedLayer.blur || 0;
+                document.getElementById('saturationSlider').value = this.selectedLayer.saturation || 100;
+
+                document.getElementById('scaleValue').textContent = (this.selectedLayer.scale || 100) + '%';
+                document.getElementById('rotationValue').textContent = (this.selectedLayer.rotation || 0) + '°';
+                document.getElementById('opacityValue').textContent = (this.selectedLayer.opacity || 100) + '%';
+                document.getElementById('xPosValue').textContent = (this.selectedLayer.x || 200) + 'px';
+                document.getElementById('yPosValue').textContent = (this.selectedLayer.y || 200) + 'px';
+                document.getElementById('blurValue').textContent = (this.selectedLayer.blur || 0) + 'px';
+                document.getElementById('saturationValue').textContent = (this.selectedLayer.saturation || 100) + '%';
+            }
+
+            updateLayersList() {
+                const container = document.getElementById('layersList');
+                container.innerHTML = '';
+
+                this.layers.forEach((layer, index) => {
+                    const div = document.createElement('div');
+                    div.className = `layer-item ${layer === this.selectedLayer ? 'active' : ''}`;
+                    
+                    div.innerHTML = `
+                        <div>
+                            <span>${layer.content}</span>
+                            <small>Layer ${index + 1}</small>
+                        </div>
+                        <div class="layer-controls">
+                            <button class="layer-btn" onclick="emojiBuilder.moveLayerUp(${index})">↑</button>
+                            <button class="layer-btn" onclick="emojiBuilder.moveLayerDown(${index})">↓</button>
+                            <button class="layer-btn" onclick="emojiBuilder.duplicateLayer(${index})">⧉</button>
+                            <button class="layer-btn" onclick="emojiBuilder.deleteLayer(${index})">×</button>
+                        </div>
+                    `;
+                    
+                    div.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('layer-btn')) {
+                            this.selectedLayer = layer;
+                            this.updateLayersList();
+                            this.updatePropertyControls();
+                        }
+                    });
+                    
+                    container.appendChild(div);
+                });
+            }
+
+            moveLayerUp(index) {
+                if (index < this.layers.length - 1) {
+                    [this.layers[index], this.layers[index + 1]] = [this.layers[index + 1], this.layers[index]];
+                    this.updateLayersList();
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            moveLayerDown(index) {
+                if (index > 0) {
+                    [this.layers[index], this.layers[index - 1]] = [this.layers[index - 1], this.layers[index]];
+                    this.updateLayersList();
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            duplicateLayer(index) {
+                const layer = this.layers[index];
+                const newLayer = { ...layer, id: Date.now(), x: layer.x + 20, y: layer.y + 20 };
+                this.layers.splice(index + 1, 0, newLayer);
+                this.updateLayersList();
+                this.render();
+                this.saveState();
+            }
+
+            deleteLayer(index) {
+                if (this.selectedLayer === this.layers[index]) {
+                    this.selectedLayer = null;
+                }
+                this.layers.splice(index, 1);
+                this.updateLayersList();
+                this.render();
+                this.saveState();
+                this.updateStats();
+            }
+
+            render() {
+                // Clear canvas
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, 400, 400);
+
+                // Render layers
+                this.layers.forEach(layer => {
+                    this.ctx.save();
+                    
+                    // Apply transformations
+                    this.ctx.translate(layer.x, layer.y);
+                    this.ctx.rotate((layer.rotation || 0) * Math.PI / 180);
+                    this.ctx.scale((layer.scale || 100) / 100, (layer.scale || 100) / 100);
+                    
+                    // Apply opacity
+                    this.ctx.globalAlpha = (layer.opacity || 100) / 100;
+                    
+                    // Apply filters
+                    let filters = [];
+                    if (layer.blur) filters.push(`blur(${layer.blur}px)`);
+                    if (layer.saturation !== 100) filters.push(`saturate(${layer.saturation}%)`);
+                    this.ctx.filter = filters.join(' ') || 'none';
+                    
+                    // Set font size based on scale
+                    const fontSize = Math.max(20, (layer.scale || 100) * 0.4);
+                    this.ctx.font = `${fontSize}px Arial`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    
+                    // Apply animation transforms
+                    if (layer.animation && layer.animation !== 'none') {
+                        const time = Date.now() / 1000;
+                        switch (layer.animation) {
+                            case 'float':
+                                this.ctx.translate(0, Math.sin(time * 2) * 5);
+                                break;
+                            case 'pulse':
+                                const pulseScale = 1 + Math.sin(time * 3) * 0.1;
+                                this.ctx.scale(pulseScale, pulseScale);
+                                break;
+                            case 'rotate':
+                                this.ctx.rotate(time * 0.5);
+                                break;
+                            case 'bounce':
+                                const bounceY = Math.abs(Math.sin(time * 4)) * 10;
+                                this.ctx.translate(0, -bounceY);
+                                break;
+                        }
+                    }
+                    
+                    // Draw the component
+                    if (layer.color && layer.color !== '#FFD700') {
+                        // For colored elements, we'll use a colored circle as background
+                        this.ctx.fillStyle = layer.color;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, fontSize * 0.6, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                    
+                    // Draw the emoji/text
+                    this.ctx.fillText(layer.content, 0, 0);
+                    
+                    this.ctx.restore();
+                });
+
+                // Draw selection indicator
+                if (this.selectedLayer) {
+                    this.ctx.save();
+                    this.ctx.strokeStyle = '#667eea';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash([5, 5]);
+                    
+                    const size = (this.selectedLayer.scale || 100) / 2;
+                    this.ctx.strokeRect(
+                        this.selectedLayer.x - size, 
+                        this.selectedLayer.y - size, 
+                        size * 2, 
+                        size * 2
+                    );
+                    this.ctx.restore();
+                }
+            }
+
+            clearCanvas() {
+                this.layers = [];
+                this.selectedLayer = null;
+                this.updateLayersList();
+                this.render();
+                this.saveState();
+                this.updateStats();
+            }
+
+            randomize() {
+                this.clearCanvas();
+                
+                // Add random base
+                const bases = this.components.bases;
+                const randomBase = bases[Math.floor(Math.random() * bases.length)];
+                this.addComponent(randomBase);
+                
+                // Add random eyes
+                const eyes = this.components.eyes;
+                const randomEyes = eyes[Math.floor(Math.random() * eyes.length)];
+                const eyeLayer = {
+                    id: Date.now() + 1,
+                    type: 'component',
+                    content: randomEyes,
+                    x: 200,
+                    y: 180 + Math.random() * 40 - 20,
+                    scale: 80 + Math.random() * 40,
+                    rotation: 0,
+                    opacity: 100,
+                    color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                    blur: 0,
+                    saturation: 100,
+                    animation: 'none'
+                };
+                this.layers.push(eyeLayer);
+                
+                // Add random mouth
+                const mouths = this.components.mouths;
+                const randomMouth = mouths[Math.floor(Math.random() * mouths.length)];
+                const mouthLayer = {
+                    id: Date.now() + 2,
+                    type: 'component',
+                    content: randomMouth,
+                    x: 200,
+                    y: 230 + Math.random() * 30 - 15,
+                    scale: 70 + Math.random() * 30,
+                    rotation: 0,
+                    opacity: 100,
+                    color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                    blur: 0,
+                    saturation: 100,
+                    animation: 'none'
+                };
+                this.layers.push(mouthLayer);
+                
+                this.updateLayersList();
+                this.render();
+                this.saveState();
+                this.updateStats();
+            }
+
+            loadPreset(presetName) {
+                if (!this.presets[presetName]) return;
+                
+                this.clearCanvas();
+                
+                this.presets[presetName].forEach((layerData, index) => {
+                    const layer = {
+                        id: Date.now() + index,
+                        type: 'component',
+                        content: layerData.content,
+                        x: layerData.x,
+                        y: layerData.y,
+                        scale: layerData.scale,
+                        rotation: 0,
+                        opacity: 100,
+                        color: this.currentColor,
+                        blur: 0,
+                        saturation: 100,
+                        animation: 'none'
+                    };
+                    this.layers.push(layer);
+                });
+                
+                this.updateLayersList();
+                this.render();
+                this.saveState();
+                this.updateStats();
+            }
+
+            saveState() {
+                this.history = this.history.slice(0, this.historyIndex + 1);
+                this.history.push(JSON.parse(JSON.stringify(this.layers)));
+                this.historyIndex++;
+                
+                // Limit history size
+                if (this.history.length > 50) {
+                    this.history.shift();
+                    this.historyIndex--;
+                }
+            }
+
+            undo() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.layers = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+                    this.selectedLayer = null;
+                    this.updateLayersList();
+                    this.render();
+                    this.updateStats();
+                }
+            }
+
+            redo() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.layers = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+                    this.selectedLayer = null;
+                    this.updateLayersList();
+                    this.render();
+                    this.updateStats();
+                }
+            }
+
+            exportPNG() {
+                // Create a temporary canvas for export
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = 400;
+                exportCanvas.height = 400;
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                // Copy current canvas content
+                exportCtx.drawImage(this.canvas, 0, 0);
+                
+                // Download as PNG
+                exportCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `emoji-${Date.now()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+
+            exportSVG() {
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '400');
+                svg.setAttribute('height', '400');
+                svg.setAttribute('viewBox', '0 0 400 400');
+                
+                // Background
+                const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bg.setAttribute('width', '100%');
+                bg.setAttribute('height', '100%');
+                bg.setAttribute('fill', '#ffffff');
+                svg.appendChild(bg);
+                
+                // Add layers as text elements
+                this.layers.forEach(layer => {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', layer.x);
+                    text.setAttribute('y', layer.y);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('dominant-baseline', 'central');
+                    text.setAttribute('font-size', Math.max(20, (layer.scale || 100) * 0.4));
+                    text.setAttribute('opacity', (layer.opacity || 100) / 100);
+                    
+                    if (layer.rotation) {
+                        text.setAttribute('transform', `rotate(${layer.rotation} ${layer.x} ${layer.y})`);
+                    }
+                    
+                    text.textContent = layer.content;
+                    svg.appendChild(text);
+                });
+                
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const blob = new Blob([svgData], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `emoji-${Date.now()}.svg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            async copyToClipboard() {
+                try {
+                    const canvas = this.canvas;
+                    canvas.toBlob(async (blob) => {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        await navigator.clipboard.write([item]);
+                        
+                        // Show feedback
+                        const btn = document.getElementById('copyToClipboard');
+                        const originalText = btn.textContent;
+                        btn.textContent = '✅ Copied!';
+                        btn.style.background = '#4ECDC4';
+                        
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.style.background = '';
+                        }, 2000);
+                    });
+                } catch (err) {
+                    console.error('Failed to copy to clipboard:', err);
+                }
+            }
+
+            updateStats() {
+                const stats = document.getElementById('statsPanel');
+                const layerCount = this.layers.length;
+                const canvasSize = '400×400';
+                stats.textContent = `Layers: ${layerCount} | Canvas: ${canvasSize} | FPS: 60`;
+            }
+        }
+
+        // Initialize the application
+        let emojiBuilder;
+        document.addEventListener('DOMContentLoaded', () => {
+            emojiBuilder = new EmojiBuilder();
+        });
+    </script>
+</body>
+</html>

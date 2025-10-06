@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Builder Workshop - Professional Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #emojiCanvas {
+            border: 3px solid #e1e8ed;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: crosshair;
+            transition: transform 0.3s ease;
+        }
+
+        #emojiCanvas:hover {
+            transform: scale(1.02);
+        }
+
+        .tool-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e1e8ed;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tool-btn, .shape-btn, .feature-btn {
+            padding: 10px;
+            border: 2px solid #e1e8ed;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 45px;
+        }
+
+        .tool-btn:hover, .shape-btn:hover, .feature-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tool-btn.active, .shape-btn.active, .feature-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .control-group label {
+            font-weight: 500;
+            min-width: 60px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .layers-panel {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .layer-item:hover {
+            background: #e9ecef;
+            transform: translateX(2px);
+        }
+
+        .layer-item.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preset-emojis {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 10px;
+            border: 2px solid #e1e8ed;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #f8f9fa;
+            transform: scale(1.1);
+        }
+
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .gradient-preview {
+            width: 100%;
+            height: 30px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .canvas-bounce { animation: bounce 2s infinite; }
+        .canvas-rotate { animation: rotate 2s linear infinite; }
+        .canvas-pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+        .feature-advanced {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            font-weight: bold;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        #textInput {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .history-panel {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+        }
+
+        .history-item {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin: 2px;
+            display: inline-block;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .history-item:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Emoji Builder Workshop</h1>
+            <p>Professional-grade emoji creation with advanced features</p>
+        </div>
+
+        <div class="workspace">
+            <!-- Left Panel - Tools & Controls -->
+            <div class="panel">
+                <h3>🛠️ Tools & Shapes</h3>
+                
+                <div class="tool-group">
+                    <label>Drawing Tools</label>
+                    <div class="tool-grid">
+                        <div class="tool-btn tooltip active" data-tool="brush" data-tooltip="Brush Tool">🖌️</div>
+                        <div class="tool-btn tooltip" data-tool="circle" data-tooltip="Circle">⭕</div>
+                        <div class="tool-btn tooltip" data-tool="rectangle" data-tooltip="Rectangle">⬜</div>
+                        <div class="tool-btn tooltip" data-tool="line" data-tooltip="Line">📏</div>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Base Shapes</label>
+                    <div class="tool-grid">
+                        <div class="shape-btn tooltip" data-shape="face" data-tooltip="Face Base">😊</div>
+                        <div class="shape-btn tooltip" data-shape="heart" data-tooltip="Heart">❤️</div>
+                        <div class="shape-btn tooltip" data-shape="star" data-tooltip="Star">⭐</div>
+                        <div class="shape-btn tooltip" data-shape="diamond" data-tooltip="Diamond">💎</div>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Features</label>
+                    <div class="tool-grid">
+                        <div class="feature-btn tooltip" data-feature="eyes" data-tooltip="Eyes">👀</div>
+                        <div class="feature-btn tooltip" data-feature="mouth" data-tooltip="Mouth">👄</div>
+                        <div class="feature-btn tooltip" data-feature="nose" data-tooltip="Nose">👃</div>
+                        <div class="feature-btn tooltip" data-feature="eyebrows" data-tooltip="Eyebrows">🤨</div>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Colors</label>
+                    <input type="color" class="color-picker" id="colorPicker" value="#ffdd44">
+                    <div class="gradient-preview" id="gradientPreview"></div>
+                    <button class="btn btn-secondary" id="gradientToggle">Enable Gradient</button>
+                </div>
+
+                <div class="tool-group">
+                    <label>Brush Settings</label>
+                    <div class="control-group">
+                        <label>Size:</label>
+                        <input type="range" class="slider" id="brushSize" min="1" max="50" value="10">
+                        <span id="sizeValue">10</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Opacity:</label>
+                        <input type="range" class="slider" id="opacity" min="0.1" max="1" step="0.1" value="1">
+                        <span id="opacityValue">100%</span>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <label>Text Tool</label>
+                    <input type="text" id="textInput" placeholder="Add text to emoji...">
+                    <input type="range" class="slider" id="fontSize" min="10" max="80" value="20">
+                </div>
+            </div>
+
+            <!-- Center Panel - Canvas -->
+            <div class="canvas-container">
+                <canvas id="emojiCanvas" width="400" height="400"></canvas>
+                
+                <div class="animation-controls">
+                    <button class="btn btn-primary" id="animateBounce">Bounce</button>
+                    <button class="btn btn-primary" id="animateRotate">Rotate</button>
+                    <button class="btn btn-primary" id="animatePulse">Pulse</button>
+                    <button class="btn btn-secondary" id="stopAnimation">Stop</button>
+                </div>
+
+                <div class="export-options">
+                    <button class="btn btn-success" id="exportPNG">📥 Export PNG</button>
+                    <button class="btn btn-success" id="exportSVG">📤 Export SVG</button>
+                    <button class="btn btn-danger" id="clearCanvas">🗑️ Clear</button>
+                    <button class="btn btn-secondary" id="undoBtn">↶ Undo</button>
+                </div>
+            </div>
+
+            <!-- Right Panel - Layers & Presets -->
+            <div class="panel">
+                <h3>📚 Presets</h3>
+                <div class="preset-emojis">
+                    <div class="preset-btn" data-preset="happy">😊</div>
+                    <div class="preset-btn" data-preset="sad">😢</div>
+                    <div class="preset-btn" data-preset="cool">😎</div>
+                    <div class="preset-btn" data-preset="love">😍</div>
+                    <div class="preset-btn" data-preset="wink">😉</div>
+                    <div class="preset-btn" data-preset="tongue">😛</div>
+                    <div class="preset-btn" data-preset="angry">😠</div>
+                    <div class="preset-btn" data-preset="surprised">😮</div>
+                </div>
+
+                <h3 style="margin-top: 20px;">🎭 Advanced Features</h3>
+                <div class="tool-group">
+                    <button class="btn feature-advanced" id="mirrorMode">Mirror Mode</button>
+                    <button class="btn feature-advanced" id="patternMode">Pattern Fill</button>
+                    <button class="btn feature-advanced" id="glowEffect">Glow Effect</button>
+                </div>
+
+                <h3>📜 History</h3>
+                <div class="history-panel" id="historyPanel">
+                    <!-- History items will be added here -->
+                </div>
+
+                <h3>🎨 Layers</h3>
+                <div class="layers-panel" id="layersPanel">
+                    <div class="layer-item active" data-layer="0">Base Layer</div>
+                </div>
+                <button class="btn btn-primary" id="addLayer" style="width: 100%; margin-top: 10px;">+ Add Layer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EmojiBuilder {
+            constructor() {
+                this.canvas = document.getElementById('emojiCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentTool = 'brush';
+                this.currentColor = '#ffdd44';
+                this.brushSize = 10;
+                this.opacity = 1;
+                this.isDrawing = false;
+                this.startX = 0;
+                this.startY = 0;
+                this.history = [];
+                this.historyStep = -1;
+                this.layers = [this.ctx.getImageData(0, 0, 400, 400)];
+                this.currentLayer = 0;
+                this.gradientMode = false;
+                this.mirrorMode = false;
+                this.patternMode = false;
+                this.glowEffect = false;
+                
+                this.init();
+                this.setupEventListeners();
+                this.saveState();
+            }
+
+            init() {
+                // Set canvas background
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, 400, 400);
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                
+                // Update UI elements
+                this.updateSliderValues();
+            }
+
+            setupEventListeners() {
+                // Canvas events
+                this.canvas.addEventListener('mousedown', this.startDrawing.bind(this));
+                this.canvas.addEventListener('mousemove', this.draw.bind(this));
+                this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this));
+                this.canvas.addEventListener('mouseout', this.stopDrawing.bind(this));
+
+                // Tool selection
+                document.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentTool = e.target.dataset.tool;
+                    });
+                });
+
+                // Shape buttons
+                document.querySelectorAll('.shape-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.addShape(e.target.dataset.shape);
+                    });
+                });
+
+                // Feature buttons
+                document.querySelectorAll('.feature-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.addFeature(e.target.dataset.feature);
+                    });
+                });
+
+                // Preset buttons
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.loadPreset(e.target.dataset.preset);
+                    });
+                });
+
+                // Controls
+                document.getElementById('colorPicker').addEventListener('change', (e) => {
+                    this.currentColor = e.target.value;
+                });
+
+                document.getElementById('brushSize').addEventListener('input', (e) => {
+                    this.brushSize = e.target.value;
+                    document.getElementById('sizeValue').textContent = e.target.value;
+                });
+
+                document.getElementById('opacity').addEventListener('input', (e) => {
+                    this.opacity = e.target.value;
+                    document.getElementById('opacityValue').textContent = Math.round(e.target.value * 100) + '%';
+                });
+
+                // Advanced features
+                document.getElementById('mirrorMode').addEventListener('click', () => {
+                    this.mirrorMode = !this.mirrorMode;
+                    document.getElementById('mirrorMode').style.opacity = this.mirrorMode ? '0.7' : '1';
+                });
+
+                document.getElementById('patternMode').addEventListener('click', () => {
+                    this.patternMode = !this.patternMode;
+                    document.getElementById('patternMode').style.opacity = this.patternMode ? '0.7' : '1';
+                });
+
+                document.getElementById('glowEffect').addEventListener('click', () => {
+                    this.glowEffect = !this.glowEffect;
+                    document.getElementById('glowEffect').style.opacity = this.glowEffect ? '0.7' : '1';
+                });
+
+                document.getElementById('gradientToggle').addEventListener('click', () => {
+                    this.gradientMode = !this.gradientMode;
+                    document.getElementById('gradientToggle').textContent = this.gradientMode ? 'Disable Gradient' : 'Enable Gradient';
+                    this.updateGradientPreview();
+                });
+
+                // Export buttons
+                document.getElementById('exportPNG').addEventListener('click', () => this.exportPNG());
+                document.getElementById('exportSVG').addEventListener('click', () => this.exportSVG());
+                document.getElementById('clearCanvas').addEventListener('click', () => this.clearCanvas());
+                document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+
+                // Animation buttons
+                document.getElementById('animateBounce').addEventListener('click', () => this.animate('bounce'));
+                document.getElementById('animateRotate').addEventListener('click', () => this.animate('rotate'));
+                document.getElementById('animatePulse').addEventListener('click', () => this.animate('pulse'));
+                document.getElementById('stopAnimation').addEventListener('click', () => this.stopAnimation());
+
+                // Text input
+                document.getElementById('textInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addText(e.target.value);
+                        e.target.value = '';
+                    }
+                });
+
+                // Layer management
+                document.getElementById('addLayer').addEventListener('click', () => this.addLayer());
+            }
+
+            updateSliderValues() {
+                document.getElementById('sizeValue').textContent = this.brushSize;
+                document.getElementById('opacityValue').textContent = Math.round(this.opacity * 100) + '%';
+            }
+
+            updateGradientPreview() {
+                const preview = document.getElementById('gradientPreview');
+                if (this.gradientMode) {
+                    preview.style.background = `linear-gradient(45deg, ${this.currentColor}, ${this.lightenColor(this.currentColor, 40)})`;
+                } else {
+                    preview.style.background = this.currentColor;
+                }
+            }
+
+            lightenColor(color, percent) {
+                const num = parseInt(color.replace("#",""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255)).toString(16).slice(1);
+            }
+
+            getMousePos(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            }
+
+            startDrawing(e) {
+                this.isDrawing = true;
+                const pos = this.getMousePos(e);
+                this.startX = pos.x;
+                this.startY = pos.y;
+                
+                if (this.currentTool === 'brush') {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(pos.x, pos.y);
+                }
+            }
+
+            draw(e) {
+                if (!this.isDrawing) return;
+                
+                const pos = this.getMousePos(e);
+                this.setupDrawingContext();
+
+                switch (this.currentTool) {
+                    case 'brush':
+                        this.ctx.lineTo(pos.x, pos.y);
+                        this.ctx.stroke();
+                        
+                        if (this.mirrorMode) {
+                            this.ctx.save();
+                            this.ctx.scale(-1, 1);
+                            this.ctx.translate(-400, 0);
+                            this.ctx.lineTo(400 - pos.x, pos.y);
+                            this.ctx.stroke();
+                            this.ctx.restore();
+                        }
+                        break;
+                }
+            }
+
+            stopDrawing(e) {
+                if (!this.isDrawing) return;
+                this.isDrawing = false;
+                
+                const pos = this.getMousePos(e);
+                this.setupDrawingContext();
+
+                switch (this.currentTool) {
+                    case 'circle':
+                        const radius = Math.sqrt(Math.pow(pos.x - this.startX, 2) + Math.pow(pos.y - this.startY, 2));
+                        this.ctx.beginPath();
+                        this.ctx.arc(this.startX, this.startY, radius, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'rectangle':
+                        const width = pos.x - this.startX;
+                        const height = pos.y - this.startY;
+                        this.ctx.fillRect(this.startX, this.startY, width, height);
+                        break;
+                    case 'line':
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.startX, this.startY);
+                        this.ctx.lineTo(pos.x, pos.y);
+                        this.ctx.stroke();
+                        break;
+                }
+                
+                this.saveState();
+            }
+
+            setupDrawingContext() {
+                this.ctx.globalAlpha = this.opacity;
+                
+                if (this.gradientMode) {
+                    const gradient = this.ctx.createLinearGradient(0, 0, 400, 400);
+                    gradient.addColorStop(0, this.currentColor);
+                    gradient.addColorStop(1, this.lightenColor(this.currentColor, 40));
+                    this.ctx.strokeStyle = gradient;
+                    this.ctx.fillStyle = gradient;
+                } else {
+                    this.ctx.strokeStyle = this.currentColor;
+                    this.ctx.fillStyle = this.currentColor;
+                }
+                
+                this.ctx.lineWidth = this.brushSize;
+                
+                if (this.glowEffect) {
+                    this.ctx.shadowColor = this.currentColor;
+                    this.ctx.shadowBlur = 10;
+                } else {
+                    this.ctx.shadowBlur = 0;
+                }
+            }
+
+            addShape(shape) {
+                const centerX = 200;
+                const centerY = 200;
+                
+                this.setupDrawingContext();
+                this.ctx.beginPath();
+                
+                switch (shape) {
+                    case 'face':
+                        this.ctx.arc(centerX, centerY, 150, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'heart':
+                        this.drawHeart(centerX, centerY, 80);
+                        break;
+                    case 'star':
+                        this.drawStar(centerX, centerY, 5, 80, 40);
+                        break;
+                    case 'diamond':
+                        this.drawDiamond(centerX, centerY, 100);
+                        break;
+                }
+                
+                this.saveState();
+            }
+
+            addFeature(feature) {
+                const centerX = 200;
+                const centerY = 200;
+                
+                this.ctx.fillStyle = '#000000';
+                this.ctx.strokeStyle = '#000000';
+                
+                switch (feature) {
+                    case 'eyes':
+                        // Left eye
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX - 40, centerY - 30, 20, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        // Right eye
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX + 40, centerY - 30, 20, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'mouth':
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY + 20, 60, 0, Math.PI);
+                        this.ctx.lineWidth = 8;
+                        this.ctx.stroke();
+                        break;
+                    case 'nose':
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'eyebrows':
+                        this.ctx.lineWidth = 6;
+                        // Left eyebrow
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(centerX - 60, centerY - 60);
+                        this.ctx.lineTo(centerX - 20, centerY - 50);
+                        this.ctx.stroke();
+                        // Right eyebrow
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(centerX + 20, centerY - 50);
+                        this.ctx.lineTo(centerX + 60, centerY - 60);
+                        this.ctx.stroke();
+                        break;
+                }
+                
+                this.saveState();
+            }
+
+            drawHeart(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y + size/4);
+                this.ctx.bezierCurveTo(x, y, x - size/2, y, x - size/2, y + size/4);
+                this.ctx.bezierCurveTo(x - size/2, y + size/2, x, y + size/2, x, y + size);
+                this.ctx.bezierCurveTo(x, y + size/2, x + size/2, y + size/2, x + size/2, y + size/4);
+                this.ctx.bezierCurveTo(x + size/2, y, x, y, x, y + size/4);
+                this.ctx.fill();
+            }
+
+            drawStar(x, y, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                const step = Math.PI / spikes;
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    const xx = x + Math.cos(rot) * outerRadius;
+                    const yy = y + Math.sin(rot) * outerRadius;
+                    this.ctx.lineTo(xx, yy);
+                    rot += step;
+                    
+                    const xxx = x + Math.cos(rot) * innerRadius;
+                    const yyy = y + Math.sin(rot) * innerRadius;
+                    this.ctx.lineTo(xxx, yyy);
+                    rot += step;
+                }
+                
+                this.ctx.lineTo(x, y - outerRadius);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawDiamond(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y - size);
+                this.ctx.lineTo(x + size, y);
+                this.ctx.lineTo(x, y + size);
+                this.ctx.lineTo(x - size, y);
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            loadPreset(preset) {
+                this.clearCanvas();
+                const centerX = 200;
+                const centerY = 200;
+                
+                // Draw base face
+                this.ctx.fillStyle = '#ffdd44';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, 150, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                // Draw eyes
+                this.ctx.fillStyle = '#000000';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - 50, centerY - 40, 15, 0, 2 * Math.PI);
+                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + 50, centerY - 40, 15, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                // Draw preset-specific features
+                switch (preset) {
+                    case 'happy':
+                        this.ctx.strokeStyle = '#000000';
+                        this.ctx.lineWidth = 8;
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY + 20, 60, 0, Math.PI);
+                        this.ctx.stroke();
+                        break;
+                    case 'sad':
+                        this.ctx.strokeStyle = '#000000';
+                        this.ctx.lineWidth = 8;
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY + 60, 60, Math.PI, 2 * Math.PI);
+                        this.ctx.stroke();
+                        break;
+                    case 'cool':
+                        // Sunglasses
+                        this.ctx.fillStyle = '#333333';
+                        this.ctx.fillRect(centerX - 80, centerY - 60, 60, 40);
+                        this.ctx.fillRect(centerX + 20, centerY - 60, 60, 40);
+                        this.ctx.strokeStyle = '#333333';
+                        this.ctx.lineWidth = 4;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(centerX - 20, centerY - 40);
+                        this.ctx.lineTo(centerX + 20, centerY - 40);
+                        this.ctx.stroke();
+                        break;
+                    case 'love':
+                        // Heart eyes
+                        this.ctx.fillStyle = '#ff0000';
+                        this.drawHeart(centerX - 50, centerY - 40, 30);
+                        this.drawHeart(centerX + 50, centerY - 40, 30);
+                        break;
+                    case 'wink':
+                        // Winking eye
+                        this.ctx.strokeStyle = '#000000';
+                        this.ctx.lineWidth = 6;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(centerX - 65, centerY - 40);
+                        this.ctx.lineTo(centerX - 35, centerY - 40);
+                        this.ctx.stroke();
+                        break;
+                    case 'tongue':
+                        // Tongue
+                        this.ctx.fillStyle = '#ff6b9d';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(centerX, centerY + 50, 30, 20, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'angry':
+                        // Angry eyebrows
+                        this.ctx.strokeStyle = '#000000';
+                        this.ctx.lineWidth = 8;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(centerX - 80, centerY - 80);
+                        this.ctx.lineTo(centerX - 30, centerY - 60);
+                        this.ctx.stroke();
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(centerX + 30, centerY - 60);
+                        this.ctx.lineTo(centerX + 80, centerY - 80);
+                        this.ctx.stroke();
+                        break;
+                    case 'surprised':
+                        // Open mouth
+                        this.ctx.fillStyle = '#000000';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(centerX, centerY + 30, 30, 40, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                }
+                
+                this.saveState();
+            }
+
+            addText(text) {
+                if (!text) return;
+                
+                const fontSize = document.getElementById('fontSize').value;
+                this.ctx.font = `${fontSize}px Arial`;
+                this.ctx.fillStyle = this.currentColor;
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(text, 200, 350);
+                
+                this.saveState();
+            }
+
+            animate(type) {
+                this.stopAnimation();
+                this.canvas.classList.add(`canvas-${type}`);
+            }
+
+            stopAnimation() {
+                this.canvas.classList.remove('canvas-bounce', 'canvas-rotate', 'canvas-pulse');
+            }
+
+            saveState() {
+                this.historyStep++;
+                if (this.historyStep < this.history.length) {
+                    this.history.length = this.historyStep;
+                }
+                this.history.push(this.canvas.toDataURL());
+                
+                // Add to history panel
+                this.updateHistoryPanel();
+            }
+
+            updateHistoryPanel() {
+                const panel = document.getElementById('historyPanel');
+                const item = document.createElement('canvas');
+                item.className = 'history-item';
+                item.width = 40;
+                item.height = 40;
+                
+                const ctx = item.getContext('2d');
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, 40, 40);
+                };
+                img.src = this.history[this.history.length - 1];
+                
+                item.addEventListener('click', () => {
+                    const mainImg = new Image();
+                    mainImg.onload = () => {
+                        this.clearCanvas();
+                        this.ctx.drawImage(mainImg, 0, 0);
+                    };
+                    mainImg.src = this.history[this.history.length - 1];
+                });
+                
+                panel.appendChild(item);
+            }
+
+            undo() {
+                if (this.historyStep > 0) {
+                    this.historyStep--;
+                    const img = new Image();
+                    img.onload = () => {
+                        this.ctx.clearRect(0, 0, 400, 400);
+                        this.ctx.drawImage(img, 0, 0);
+                    };
+                    img.src = this.history[this.historyStep];
+                }
+            }
+
+            addLayer() {
+                this.layers.push(this.ctx.getImageData(0, 0, 400, 400));
+                const panel = document.getElementById('layersPanel');
+                const item = document.createElement('div');
+                item.className = 'layer-item';
+                item.textContent = `Layer ${this.layers.length}`;
+                item.dataset.layer = this.layers.length - 1;
+                panel.appendChild(item);
+                
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.layer-item').forEach(l => l.classList.remove('active'));
+                    item.classList.add('active');
+                    this.currentLayer = parseInt(item.dataset.layer);
+                });
+            }
+
+            clearCanvas() {
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, 400, 400);
+                this.saveState();
+            }
+
+            exportPNG() {
+                const link = document.createElement('a');
+                link.download = `emoji-${Date.now()}.png`;
+                link.href = this.canvas.toDataURL();
+                link.click();
+            }
+
+            exportSVG() {
+                // Create SVG representation
+                const svg = `
+                <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+                    <foreignObject width="100%" height="100%">
+                        <div xmlns="http://www.w3.org/1999/xhtml">
+                            <canvas width="400" height="400" style="background: url('${this.canvas.toDataURL()}');"></canvas>
+                        </div>
+                    </foreignObject>
+                </svg>`;
+                
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const link = document.createElement('a');
+                link.download = `emoji-${Date.now()}.svg`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new EmojiBuilder();
+        });
+    </script>
+</body>
+</html>

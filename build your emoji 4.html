@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Builder Workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .workshop-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sidebar-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .tool-section {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+        }
+
+        .tool-item {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            font-size: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-item:hover {
+            border-color: #ff6b6b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tool-item.selected {
+            border-color: #ff6b6b;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+        }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .toolbar {
+            height: 80px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            gap: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            transform: translateY(-1px);
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        .emoji-canvas {
+            width: 400px;
+            height: 400px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .canvas-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(0deg, #000 0px, transparent 1px),
+                linear-gradient(90deg, #000 0px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .layer {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .layer.selected {
+            outline: 2px dashed #ff6b6b;
+            outline-offset: 2px;
+        }
+
+        .layers-panel {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            width: 250px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .layers-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .layer-item:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .layer-item.active {
+            background: linear-gradient(45deg, rgba(255, 107, 107, 0.2), rgba(254, 202, 87, 0.2));
+            border-color: #ff6b6b;
+        }
+
+        .layer-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-picker {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            outline: 2px solid #ddd;
+            outline-offset: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .color-picker:hover {
+            outline-color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .size-slider {
+            width: 120px;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .export-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+        }
+
+        .export-preview {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                z-index: 999;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .emoji-canvas {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .layers-panel {
+                position: relative;
+                width: 100%;
+                margin-top: 20px;
+            }
+        }
+
+        .animation-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .layer.animate-bounce {
+            animation: bounce 1s infinite;
+        }
+
+        .layer.animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .layer.animate-spin {
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+            40%, 43% { transform: translateY(-15px); }
+            70% { transform: translateY(-7px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="workshop-container">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>✨ Emoji Builder</h1>
+                <p>Professional Creative Workshop</p>
+            </div>
+            
+            <div class="tool-section">
+                <h3>🎨 Base Shapes</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" onclick="selectTool('circle')" data-tool="circle">⭕</div>
+                    <div class="tool-item" onclick="selectTool('square')" data-tool="square">⬜</div>
+                    <div class="tool-item" onclick="selectTool('triangle')" data-tool="triangle">🔺</div>
+                    <div class="tool-item" onclick="selectTool('heart')" data-tool="heart">❤️</div>
+                    <div class="tool-item" onclick="selectTool('star')" data-tool="star">⭐</div>
+                    <div class="tool-item" onclick="selectTool('diamond')" data-tool="diamond">💎</div>
+                </div>
+            </div>
+            
+            <div class="tool-section">
+                <h3>👀 Eyes</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" onclick="selectTool('eye-normal')" data-tool="eye-normal">👁️</div>
+                    <div class="tool-item" onclick="selectTool('eye-wink')" data-tool="eye-wink">😉</div>
+                    <div class="tool-item" onclick="selectTool('eye-heart')" data-tool="eye-heart">😍</div>
+                    <div class="tool-item" onclick="selectTool('eye-star')" data-tool="eye-star">🤩</div>
+                    <div class="tool-item" onclick="selectTool('eye-closed')" data-tool="eye-closed">😴</div>
+                    <div class="tool-item" onclick="selectTool('eye-x')" data-tool="eye-x">😵</div>
+                </div>
+            </div>
+            
+            <div class="tool-section">
+                <h3>👄 Mouths</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" onclick="selectTool('mouth-smile')" data-tool="mouth-smile">😊</div>
+                    <div class="tool-item" onclick="selectTool('mouth-frown')" data-tool="mouth-frown">😢</div>
+                    <div class="tool-item" onclick="selectTool('mouth-open')" data-tool="mouth-open">😮</div>
+                    <div class="tool-item" onclick="selectTool('mouth-tongue')" data-tool="mouth-tongue">😛</div>
+                    <div class="tool-item" onclick="selectTool('mouth-kiss')" data-tool="mouth-kiss">😘</div>
+                    <div class="tool-item" onclick="selectTool('mouth-neutral')" data-tool="mouth-neutral">😐</div>
+                </div>
+            </div>
+            
+            <div class="tool-section">
+                <h3>✨ Accessories</h3>
+                <div class="tool-grid">
+                    <div class="tool-item" onclick="selectTool('glasses')" data-tool="glasses">👓</div>
+                    <div class="tool-item" onclick="selectTool('sunglasses')" data-tool="sunglasses">🕶️</div>
+                    <div class="tool-item" onclick="selectTool('hat')" data-tool="hat">🎩</div>
+                    <div class="tool-item" onclick="selectTool('crown')" data-tool="crown">👑</div>
+                    <div class="tool-item" onclick="selectTool('bow')" data-tool="bow">🎀</div>
+                    <div class="tool-item" onclick="selectTool('headband')" data-tool="headband">👸</div>
+                </div>
+            </div>
+            
+            <div class="tool-section">
+                <h3>🎯 Properties</h3>
+                <div class="color-picker-group">
+                    <label>Color:</label>
+                    <input type="color" id="colorPicker" class="color-picker" value="#ff6b6b" onchange="updateColor()">
+                </div>
+                <br>
+                <div class="color-picker-group">
+                    <label>Size:</label>
+                    <input type="range" id="sizeSlider" class="size-slider" min="20" max="150" value="60" onchange="updateSize()">
+                </div>
+                <br>
+                <div class="animation-controls">
+                    <label>Animation:</label>
+                    <select id="animationSelect" onchange="updateAnimation()">
+                        <option value="none">None</option>
+                        <option value="bounce">Bounce</option>
+                        <option value="pulse">Pulse</option>
+                        <option value="spin">Spin</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-area">
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <button class="btn btn-secondary" onclick="clearCanvas()">
+                        🗑️ Clear All
+                    </button>
+                    <button class="btn btn-secondary" onclick="undoLast()">
+                        ↶ Undo
+                    </button>
+                    <button class="btn btn-secondary" onclick="duplicateLayer()">
+                        📄 Duplicate
+                    </button>
+                </div>
+                <div class="toolbar-group" style="margin-left: auto;">
+                    <button class="btn btn-primary" onclick="saveProject()">
+                        💾 Save Project
+                    </button>
+                    <button class="btn btn-primary" onclick="showExportModal()">
+                        📤 Export
+                    </button>
+                </div>
+            </div>
+            
+            <div class="canvas-wrapper">
+                <div class="emoji-canvas" id="emojiCanvas" onclick="addElement(event)">
+                    <div class="canvas-grid"></div>
+                </div>
+                
+                <div class="layers-panel">
+                    <div class="layers-header">🗂️ Layers</div>
+                    <div id="layersList">
+                        <!-- Layers will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="export-modal" id="exportModal">
+        <div class="modal-content">
+            <h2>🚀 Export Your Emoji</h2>
+            <div class="export-preview" id="exportPreview">
+                <!-- Preview will be rendered here -->
+            </div>
+            <div class="toolbar-group" style="justify-content: center; gap: 15px;">
+                <button class="btn btn-primary" onclick="exportAsPNG()">📱 Export as PNG</button>
+                <button class="btn btn-primary" onclick="exportAsSVG()">🎨 Export as SVG</button>
+                <button class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">
+        ✅ Action completed successfully!
+    </div>
+
+    <script>
+        let selectedTool = null;
+        let currentColor = '#ff6b6b';
+        let currentSize = 60;
+        let currentAnimation = 'none';
+        let layerCounter = 0;
+        let layers = [];
+        let selectedLayer = null;
+        let projectHistory = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLayersList();
+            saveState();
+        });
+
+        function selectTool(toolName) {
+            // Remove previous selection
+            document.querySelectorAll('.tool-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select new tool
+            const toolElement = document.querySelector(`[data-tool="${toolName}"]`);
+            if (toolElement) {
+                toolElement.classList.add('selected');
+                selectedTool = toolName;
+            }
+        }
+
+        function addElement(event) {
+            if (!selectedTool) {
+                showToast('⚠️ Please select a tool first!');
+                return;
+            }
+
+            const canvas = document.getElementById('emojiCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left - currentSize/2;
+            const y = event.clientY - rect.top - currentSize/2;
+
+            const layer = createElement(selectedTool, x, y, currentSize, currentColor);
+            canvas.appendChild(layer);
+            
+            layers.push({
+                id: layer.id,
+                type: selectedTool,
+                x: x,
+                y: y,
+                size: currentSize,
+                color: currentColor,
+                animation: currentAnimation,
+                element: layer
+            });
+
+            updateLayersList();
+            selectLayer(layer.id);
+            saveState();
+            showToast('✨ Element added successfully!');
+        }
+
+        function createElement(type, x, y, size, color) {
+            const element = document.createElement('div');
+            element.className = 'layer';
+            element.id = `layer-${layerCounter++}`;
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            element.style.width = size + 'px';
+            element.style.height = size + 'px';
+            element.style.fontSize = (size * 0.8) + 'px';
+            element.style.display = 'flex';
+            element.style.alignItems = 'center';
+            element.style.justifyContent = 'center';
+            element.style.pointerEvents = 'auto';
+            element.style.cursor = 'move';
+
+            // Apply animation
+            if (currentAnimation !== 'none') {
+                element.classList.add(`animate-${currentAnimation}`);
+            }
+
+            // Set element content based on type
+            switch(type) {
+                case 'circle':
+                    element.style.backgroundColor = color;
+                    element.style.borderRadius = '50%';
+                    break;
+                case 'square':
+                    element.style.backgroundColor = color;
+                    element.style.borderRadius = '8px';
+                    break;
+                case 'triangle':
+                    element.innerHTML = '🔺';
+                    element.style.color = color;
+                    break;
+                case 'heart':
+                    element.innerHTML = '❤️';
+                    element.style.color = color;
+                    break;
+                case 'star':
+                    element.innerHTML = '⭐';
+                    element.style.color = color;
+                    break;
+                case 'diamond':
+                    element.innerHTML = '💎';
+                    element.style.color = color;
+                    break;
+                case 'eye-normal':
+                    element.innerHTML = '👁️';
+                    break;
+                case 'eye-wink':
+                    element.innerHTML = '😉';
+                    break;
+                case 'eye-heart':
+                    element.innerHTML = '😍';
+                    break;
+                case 'eye-star':
+                    element.innerHTML = '🤩';
+                    break;
+                case 'eye-closed':
+                    element.innerHTML = '😴';
+                    break;
+                case 'eye-x':
+                    element.innerHTML = '😵';
+                    break;
+                case 'mouth-smile':
+                    element.innerHTML = '😊';
+                    break;
+                case 'mouth-frown':
+                    element.innerHTML = '😢';
+                    break;
+                case 'mouth-open':
+                    element.innerHTML = '😮';
+                    break;
+                case 'mouth-tongue':
+                    element.innerHTML = '😛';
+                    break;
+                case 'mouth-kiss':
+                    element.innerHTML = '😘';
+                    break;
+                case 'mouth-neutral':
+                    element.innerHTML = '😐';
+                    break;
+                case 'glasses':
+                    element.innerHTML = '👓';
+                    break;
+                case 'sunglasses':
+                    element.innerHTML = '🕶️';
+                    break;
+                case 'hat':
+                    element.innerHTML = '🎩';
+                    break;
+                case 'crown':
+                    element.innerHTML = '👑';
+                    break;
+                case 'bow':
+                    element.innerHTML = '🎀';
+                    break;
+                case 'headband':
+                    element.innerHTML = '👸';
+                    break;
+            }
+
+            // Make draggable
+            makeDraggable(element);
+            
+            // Add click handler for selection
+            element.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectLayer(element.id);
+            });
+
+            return element;
+        }
+
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            element.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialX = parseInt(element.style.left);
+                initialY = parseInt(element.style.top);
+                element.style.zIndex = '1000';
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    element.style.left = (initialX + deltaX) + 'px';
+                    element.style.top = (initialY + deltaY) + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    element.style.zIndex = 'auto';
+                    updateLayerPosition(element);
+                    saveState();
+                }
+            });
+        }
+
+        function updateLayerPosition(element) {
+            const layer = layers.find(l => l.id === element.id);
+            if (layer) {
+                layer.x = parseInt(element.style.left);
+                layer.y = parseInt(element.style.top);
+            }
+        }
+
+        function selectLayer(layerId) {
+            // Remove previous selection
+            document.querySelectorAll('.layer').forEach(layer => {
+                layer.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.layer-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Select new layer
+            const layer = document.getElementById(layerId);
+            if (layer) {
+                layer.classList.add('selected');
+                selectedLayer = layerId;
+                
+                // Update layer list selection
+                const layerItem = document.querySelector(`[data-layer="${layerId}"]`);
+                if (layerItem) {
+                    layerItem.classList.add('active');
+                }
+
+                // Update controls with layer properties
+                const layerData = layers.find(l => l.id === layerId);
+                if (layerData) {
+                    document.getElementById('colorPicker').value = layerData.color;
+                    document.getElementById('sizeSlider').value = layerData.size;
+                    document.getElementById('animationSelect').value = layerData.animation;
+                }
+            }
+        }
+
+        function updateLayersList() {
+            const layersList = document.getElementById('layersList');
+            layersList.innerHTML = '';
+
+            layers.forEach((layer, index) => {
+                const layerItem = document.createElement('div');
+                layerItem.className = 'layer-item';
+                layerItem.setAttribute('data-layer', layer.id);
+                layerItem.onclick = () => selectLayer(layer.id);
+
+                layerItem.innerHTML = `
+                    <div class="layer-preview" style="background-color: ${layer.color};">
+                        ${getLayerIcon(layer.type)}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; font-size: 12px;">${layer.type}</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Layer ${index + 1}</div>
+                    </div>
+                    <button onclick="deleteLayer('${layer.id}')" style="background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 14px;">🗑️</button>
+                `;
+
+                layersList.appendChild(layerItem);
+            });
+        }
+
+        function getLayerIcon(type) {
+            const icons = {
+                'circle': '⭕',
+                'square': '⬜',
+                'triangle': '🔺',
+                'heart': '❤️',
+                'star': '⭐',
+                'diamond': '💎',
+                'eye-normal': '👁️',
+                'eye-wink': '😉',
+                'eye-heart': '😍',
+                'eye-star': '🤩',
+                'eye-closed': '😴',
+                'eye-x': '😵',
+                'mouth-smile': '😊',
+                'mouth-frown': '😢',
+                'mouth-open': '😮',
+                'mouth-tongue': '😛',
+                'mouth-kiss': '😘',
+                'mouth-neutral': '😐',
+                'glasses': '👓',
+                'sunglasses': '🕶️',
+                'hat': '🎩',
+                'crown': '👑',
+                'bow': '🎀',
+                'headband': '👸'
+            };
+            return icons[type] || '🎨';
+        }
+
+        function deleteLayer(layerId) {
+            const element = document.getElementById(layerId);
+            if (element) {
+                element.remove();
+            }
+            
+            layers = layers.filter(layer => layer.id !== layerId);
+            updateLayersList();
+            saveState();
+            showToast('🗑️ Layer deleted');
+        }
+
+        function updateColor() {
+            currentColor = document.getElementById('colorPicker').value;
+            
+            if (selectedLayer) {
+                const layer = layers.find(l => l.id === selectedLayer);
+                const element = document.getElementById(selectedLayer);
+                
+                if (layer && element) {
+                    layer.color = currentColor;
+                    
+                    // Apply color based on element type
+                    if (['circle', 'square'].includes(layer.type)) {
+                        element.style.backgroundColor = currentColor;
+                    } else {
+                        element.style.color = currentColor;
+                    }
+                    
+                    updateLayersList();
+                    saveState();
+                }
+            }
+        }
+
+        function updateSize() {
+            currentSize = parseInt(document.getElementById('sizeSlider').value);
+            
+            if (selectedLayer) {
+                const layer = layers.find(l => l.id === selectedLayer);
+                const element = document.getElementById(selectedLayer);
+                
+                if (layer && element) {
+                    layer.size = currentSize;
+                    element.style.width = currentSize + 'px';
+                    element.style.height = currentSize + 'px';
+                    element.style.fontSize = (currentSize * 0.8) + 'px';
+                    
+                    saveState();
+                }
+            }
+        }
+
+        function updateAnimation() {
+            currentAnimation = document.getElementById('animationSelect').value;
+            
+            if (selectedLayer) {
+                const layer = layers.find(l => l.id === selectedLayer);
+                const element = document.getElementById(selectedLayer);
+                
+                if (layer && element) {
+                    // Remove existing animation classes
+                    element.classList.remove('animate-bounce', 'animate-pulse', 'animate-spin');
+                    
+                    // Add new animation
+                    layer.animation = currentAnimation;
+                    if (currentAnimation !== 'none') {
+                        element.classList.add(`animate-${currentAnimation}`);
+                    }
+                    
+                    saveState();
+                }
+            }
+        }
+
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear all layers?')) {
+                const canvas = document.getElementById('emojiCanvas');
+                layers.forEach(layer => {
+                    const element = document.getElementById(layer.id);
+                    if (element) element.remove();
+                });
+                
+                layers = [];
+                selectedLayer = null;
+                updateLayersList();
+                saveState();
+                showToast('🧹 Canvas cleared');
+            }
+        }
+
+        function undoLast() {
+            if (projectHistory.length > 1) {
+                projectHistory.pop(); // Remove current state
+                const previousState = projectHistory[projectHistory.length - 1];
+                restoreState(previousState);
+                showToast('↶ Undo successful');
+            } else {
+                showToast('⚠️ Nothing to undo');
+            }
+        }
+
+        function duplicateLayer() {
+            if (selectedLayer) {
+                const layer = layers.find(l => l.id === selectedLayer);
+                if (layer) {
+                    const newElement = createElement(
+                        layer.type,
+                        layer.x + 20,
+                        layer.y + 20,
+                        layer.size,
+                        layer.color
+                    );
+                    
+                    const canvas = document.getElementById('emojiCanvas');
+                    canvas.appendChild(newElement);
+                    
+                    layers.push({
+                        id: newElement.id,
+                        type: layer.type,
+                        x: layer.x + 20,
+                        y: layer.y + 20,
+                        size: layer.size,
+                        color: layer.color,
+                        animation: layer.animation,
+                        element: newElement
+                    });
+
+                    updateLayersList();
+                    selectLayer(newElement.id);
+                    saveState();
+                    showToast('📄 Layer duplicated');
+                }
+            } else {
+                showToast('⚠️ Please select a layer to duplicate');
+            }
+        }
+
+        function saveState() {
+            const state = {
+                layers: layers.map(layer => ({
+                    id: layer.id,
+                    type: layer.type,
+                    x: layer.x,
+                    y: layer.y,
+                    size: layer.size,
+                    color: layer.color,
+                    animation: layer.animation
+                })),
+                layerCounter: layerCounter
+            };
+            
+            projectHistory.push(JSON.parse(JSON.stringify(state)));
+            
+            // Keep only last 20 states for performance
+            if (projectHistory.length > 20) {
+                projectHistory.shift();
+            }
+        }
+
+        function restoreState(state) {
+            // Clear current canvas
+            const canvas = document.getElementById('emojiCanvas');
+            layers.forEach(layer => {
+                const element = document.getElementById(layer.id);
+                if (element) element.remove();
+            });
+
+            // Restore layers
+            layers = [];
+            layerCounter = state.layerCounter;
+            
+            state.layers.forEach(layerData => {
+                const element = createElement(
+                    layerData.type,
+                    layerData.x,
+                    layerData.y,
+                    layerData.size,
+                    layerData.color
+                );
+                element.id = layerData.id;
+                
+                if (layerData.animation !== 'none') {
+                    element.classList.add(`animate-${layerData.animation}`);
+                }
+                
+                canvas.appendChild(element);
+                
+                layers.push({
+                    id: layerData.id,
+                    type: layerData.type,
+                    x: layerData.x,
+                    y: layerData.y,
+                    size: layerData.size,
+                    color: layerData.color,
+                    animation: layerData.animation,
+                    element: element
+                });
+            });
+
+            updateLayersList();
+            selectedLayer = null;
+        }
+
+        function saveProject() {
+            const projectData = {
+                version: "1.0",
+                timestamp: new Date().toISOString(),
+                layers: layers.map(layer => ({
+                    type: layer.type,
+                    x: layer.x,
+                    y: layer.y,
+                    size: layer.size,
+                    color: layer.color,
+                    animation: layer.animation
+                }))
+            };
+
+            const dataStr = JSON.stringify(projectData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `emoji-project-${Date.now()}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showToast('💾 Project saved successfully!');
+        }
+
+        function showExportModal() {
+            const modal = document.getElementById('exportModal');
+            const preview = document.getElementById('exportPreview');
+            
+            // Create preview
+            preview.innerHTML = '';
+            const previewCanvas = document.createElement('div');
+            previewCanvas.style.width = '200px';
+            previewCanvas.style.height = '200px';
+            previewCanvas.style.position = 'relative';
+            previewCanvas.style.background = 'white';
+            previewCanvas.style.borderRadius = '15px';
+            previewCanvas.style.overflow = 'hidden';
+            
+            // Scale down layers for preview
+            layers.forEach(layer => {
+                const previewElement = document.createElement('div');
+                const scale = 200 / 400; // Scale factor for preview
+                
+                previewElement.style.position = 'absolute';
+                previewElement.style.left = (layer.x * scale) + 'px';
+                previewElement.style.top = (layer.y * scale) + 'px';
+                previewElement.style.width = (layer.size * scale) + 'px';
+                previewElement.style.height = (layer.size * scale) + 'px';
+                previewElement.style.fontSize = (layer.size * scale * 0.8) + 'px';
+                previewElement.style.display = 'flex';
+                previewElement.style.alignItems = 'center';
+                previewElement.style.justifyContent = 'center';
+                
+                // Apply styling based on type
+                if (['circle', 'square'].includes(layer.type)) {
+                    previewElement.style.backgroundColor = layer.color;
+                    if (layer.type === 'circle') {
+                        previewElement.style.borderRadius = '50%';
+                    } else {
+                        previewElement.style.borderRadius = '4px';
+                    }
+                } else {
+                    previewElement.innerHTML = getLayerIcon(layer.type);
+                    previewElement.style.color = layer.color;
+                }
+                
+                previewCanvas.appendChild(previewElement);
+            });
+            
+            preview.appendChild(previewCanvas);
+            modal.style.display = 'flex';
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+
+        function exportAsPNG() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+            
+            // White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 400, 400);
+            
+            // Create a promise chain to handle async font loading
+            let renderPromise = Promise.resolve();
+            
+            layers.forEach(layer => {
+                renderPromise = renderPromise.then(() => {
+                    return new Promise((resolve) => {
+                        if (['circle', 'square'].includes(layer.type)) {
+                            ctx.fillStyle = layer.color;
+                            
+                            if (layer.type === 'circle') {
+                                ctx.beginPath();
+                                ctx.arc(
+                                    layer.x + layer.size/2,
+                                    layer.y + layer.size/2,
+                                    layer.size/2,
+                                    0,
+                                    2 * Math.PI
+                                );
+                                ctx.fill();
+                            } else {
+                                ctx.fillRect(layer.x, layer.y, layer.size, layer.size);
+                            }
+                            resolve();
+                        } else {
+                            // For emoji/text elements
+                            ctx.font = `${layer.size * 0.8}px Arial`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillStyle = layer.color;
+                            
+                            const icon = getLayerIcon(layer.type);
+                            ctx.fillText(
+                                icon,
+                                layer.x + layer.size/2,
+                                layer.y + layer.size/2
+                            );
+                            resolve();
+                        }
+                    });
+                });
+            });
+            
+            renderPromise.then(() => {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `custom-emoji-${Date.now()}.png`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    closeExportModal();
+                    showToast('📱 PNG exported successfully!');
+                });
+            });
+        }
+
+        function exportAsSVG() {
+            let svgContent = `<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="400" fill="white"/>`;
+            
+            layers.forEach(layer => {
+                if (layer.type === 'circle') {
+                    svgContent += `<circle cx="${layer.x + layer.size/2}" cy="${layer.y + layer.size/2}" 
+                        r="${layer.size/2}" fill="${layer.color}"/>`;
+                } else if (layer.type === 'square') {
+                    svgContent += `<rect x="${layer.x}" y="${layer.y}" width="${layer.size}" 
+                        height="${layer.size}" fill="${layer.color}"/>`;
+                } else {
+                    const icon = getLayerIcon(layer.type);
+                    svgContent += `<text x="${layer.x + layer.size/2}" y="${layer.y + layer.size/2}" 
+                        font-size="${layer.size * 0.8}" text-anchor="middle" dominant-baseline="central" 
+                        fill="${layer.color}">${icon}</text>`;
+                }
+            });
+            
+            svgContent += '</svg>';
+            
+            const blob = new Blob([svgContent], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `custom-emoji-${Date.now()}.svg`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            closeExportModal();
+            showToast('🎨 SVG exported successfully!');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'z':
+                        e.preventDefault();
+                        undoLast();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        saveProject();
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        duplicateLayer();
+                        break;
+                }
+            }
+            
+            // Delete key
+            if (e.key === 'Delete' && selectedLayer) {
+                deleteLayer(selectedLayer);
+            }
+            
+            // Escape to deselect
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.layer').forEach(layer => {
+                    layer.classList.remove('selected');
+                });
+                document.querySelectorAll('.layer-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                selectedLayer = null;
+            }
+        });
+
+        // Close modal on outside click
+        document.getElementById('exportModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExportModal();
+            }
+        });
+
+        // Touch support for mobile
+        let touchStartX, touchStartY;
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.classList.contains('layer')) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // Auto-save every 30 seconds
+        setInterval(() => {
+            if (layers.length > 0) {
+                const autoSaveData = {
+                    timestamp: new Date().toISOString(),
+                    layers: layers.map(layer => ({
+                        type: layer.type,
+                        x: layer.x,
+                        y: layer.y,
+                        size: layer.size,
+                        color: layer.color,
+                        animation: layer.animation
+                    }))
+                };
+                
+                // Store in memory (since localStorage is not available)
+                window.autoSaveData = autoSaveData;
+                console.log('Auto-save completed:', new Date().toLocaleTimeString());
+            }
+        }, 30000);
+
+        // Performance optimization: Throttle layer updates
+        function throttle(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Optimized drag handling
+        const optimizedUpdateLayerPosition = throttle(updateLayerPosition, 16); // ~60fps
+    </script>
+</body>
+</html>

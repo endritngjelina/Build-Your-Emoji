@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Builder Workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 280px;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .components-panel {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .canvas-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .canvas-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        #canvas {
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            background: white;
+            cursor: crosshair;
+        }
+
+        .controls-panel {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h3 {
+            color: #4f46e5;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .component-btn {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1.8em;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.15);
+            border-color: #4f46e5;
+        }
+
+        .component-btn.selected {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border-color: #4f46e5;
+            transform: scale(1.05);
+        }
+
+        .controls-group {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            font-weight: 500;
+            color: #374151;
+            min-width: 60px;
+            font-size: 0.9em;
+        }
+
+        .slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+        }
+
+        .color-input {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .layers-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid #e5e7eb;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .layer-item:hover {
+            background: #f8fafc;
+        }
+
+        .layer-item.active {
+            background: #eff6ff;
+            border-left: 3px solid #4f46e5;
+        }
+
+        .layer-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .layer-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+
+        .layer-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .template-btn {
+            background: linear-gradient(135deg, #f0f9ff, #dbeafe);
+            border: 2px solid #dbeafe;
+            border-radius: 12px;
+            padding: 20px 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 2.5em;
+        }
+
+        .template-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .animation-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .animation-btn {
+            background: linear-gradient(135deg, #fef3c7, #fbbf24);
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .animation-btn:hover {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .animation-btn.active {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wobble {
+            0% { transform: rotate(0deg); }
+            15% { transform: rotate(-5deg); }
+            30% { transform: rotate(5deg); }
+            45% { transform: rotate(-3deg); }
+            60% { transform: rotate(3deg); }
+            75% { transform: rotate(-1deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .canvas-bounce { animation: bounce 1s infinite; }
+        .canvas-rotate { animation: rotate 2s linear infinite; }
+        .canvas-pulse { animation: pulse 1.5s ease-in-out infinite; }
+        .canvas-wobble { animation: wobble 1s ease-in-out infinite; }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .size-selector {
+            margin: 10px 0;
+        }
+
+        .size-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .size-btn {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .size-btn:hover {
+            border-color: #4f46e5;
+            background: #eff6ff;
+        }
+
+        .size-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Emoji Builder Workshop</h1>
+            <p>Professional Creative Tool for Custom Emoji Design</p>
+        </div>
+
+        <div class="panel components-panel">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number" id="layerCount">0</div>
+                    <div class="stat-label">Layers</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="elementCount">0</div>
+                    <div class="stat-label">Elements</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🎯 Quick Templates</h3>
+                <div class="templates-grid">
+                    <div class="template-btn" data-template="happy">😊</div>
+                    <div class="template-btn" data-template="cool">😎</div>
+                    <div class="template-btn" data-template="heart">❤️</div>
+                    <div class="template-btn" data-template="star">⭐</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👤 Face Shapes</h3>
+                <div class="component-grid">
+                    <div class="component-btn" data-component="circle">⭕</div>
+                    <div class="component-btn" data-component="square">⬜</div>
+                    <div class="component-btn" data-component="heart">💙</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👀 Eyes</h3>
+                <div class="component-grid">
+                    <div class="component-btn" data-component="eyes-normal">👀</div>
+                    <div class="component-btn" data-component="eyes-wink">😉</div>
+                    <div class="component-btn" data-component="eyes-closed">😴</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👄 Mouths</h3>
+                <div class="component-grid">
+                    <div class="component-btn" data-component="mouth-smile">😊</div>
+                    <div class="component-btn" data-component="mouth-sad">☹️</div>
+                    <div class="component-btn" data-component="mouth-open">😮</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🎨 Accessories</h3>
+                <div class="component-grid">
+                    <div class="component-btn" data-component="hat">🎩</div>
+                    <div class="component-btn" data-component="glasses">🤓</div>
+                    <div class="component-btn" data-component="mustache">🥸</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel canvas-area">
+            <div class="canvas-container">
+                <canvas id="canvas" width="400" height="400"></canvas>
+            </div>
+            
+            <div class="section">
+                <h3>🎬 Animations</h3>
+                <div class="animation-controls">
+                    <div class="animation-btn" data-animation="none">None</div>
+                    <div class="animation-btn" data-animation="bounce">Bounce</div>
+                    <div class="animation-btn" data-animation="rotate">Rotate</div>
+                    <div class="animation-btn" data-animation="pulse">Pulse</div>
+                    <div class="animation-btn" data-animation="wobble">Wobble</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                <button class="btn tooltip" onclick="clearCanvas()" data-tooltip="Remove all elements">
+                    🗑️ Clear All
+                </button>
+                <button class="btn tooltip" onclick="undoLast()" data-tooltip="Remove last element">
+                    ↶ Undo
+                </button>
+                <button class="btn tooltip" onclick="saveProject()" data-tooltip="Save current project">
+                    💾 Save Project
+                </button>
+            </div>
+        </div>
+
+        <div class="panel controls-panel">
+            <div class="section">
+                <h3>🎛️ Element Controls</h3>
+                <div class="controls-group">
+                    <div class="control-row">
+                        <span class="control-label">Size:</span>
+                        <input type="range" class="slider" id="sizeSlider" min="10" max="100" value="50">
+                        <span id="sizeValue">50</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">X:</span>
+                        <input type="range" class="slider" id="xSlider" min="0" max="400" value="200">
+                        <span id="xValue">200</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">Y:</span>
+                        <input type="range" class="slider" id="ySlider" min="0" max="400" value="200">
+                        <span id="yValue">200</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">Rotate:</span>
+                        <input type="range" class="slider" id="rotateSlider" min="0" max="360" value="0">
+                        <span id="rotateValue">0°</span>
+                    </div>
+                    <div class="control-row">
+                        <span class="control-label">Color:</span>
+                        <input type="color" class="color-input" id="colorPicker" value="#4f46e5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📚 Layers</h3>
+                <div class="layers-list" id="layersList">
+                    <div style="text-align: center; padding: 20px; color: #9ca3af;">
+                        No layers yet. Add some elements!
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="duplicateSelected()">📋 Duplicate</button>
+                    <button class="btn btn-danger" onclick="deleteSelected()">🗑️ Delete</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📤 Export Options</h3>
+                <div class="size-selector">
+                    <label style="font-weight: 500; color: #374151; margin-bottom: 8px; display: block;">Export Size:</label>
+                    <div class="size-grid">
+                        <div class="size-btn active" data-size="64">64px</div>
+                        <div class="size-btn" data-size="128">128px</div>
+                        <div class="size-btn" data-size="256">256px</div>
+                        <div class="size-btn" data-size="512">512px</div>
+                        <div class="size-btn" data-size="1024">1024px</div>
+                        <div class="size-btn" data-size="2048">2048px</div>
+                    </div>
+                </div>
+                <div class="export-options">
+                    <button class="btn btn-success tooltip" onclick="exportPNG()" data-tooltip="Download as PNG image">
+                        📸 Export PNG
+                    </button>
+                    <button class="btn btn-success tooltip" onclick="exportSVG()" data-tooltip="Download as SVG vector">
+                        📐 Export SVG
+                    </button>
+                </div>
+                <button class="btn tooltip" onclick="loadProject()" data-tooltip="Load saved project" style="width: 100%; margin-top: 10px;">
+                    📁 Load Project
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EmojiBuilder {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.layers = [];
+                this.selectedLayer = null;
+                this.selectedComponent = null;
+                this.isDrawing = false;
+                this.lastPos = { x: 0, y: 0 };
+                this.exportSize = 64;
+                this.history = [];
+                
+                this.initializeEventListeners();
+                this.render();
+                this.updateStats();
+            }
+
+            initializeEventListeners() {
+                // Component selection
+                document.querySelectorAll('.component-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.component-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        this.selectedComponent = btn.dataset.component;
+                    });
+                });
+
+                // Template buttons
+                document.querySelectorAll('.template-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.loadTemplate(btn.dataset.template);
+                    });
+                });
+
+                // Canvas interaction
+                this.canvas.addEventListener('click', (e) => {
+                    if (this.selectedComponent) {
+                        const rect = this.canvas.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        this.addElement(x, y);
+                    }
+                });
+
+                this.canvas.addEventListener('mousedown', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    this.selectLayerAt(x, y);
+                });
+
+                // Control sliders
+                const sliders = ['size', 'x', 'y', 'rotate'];
+                sliders.forEach(type => {
+                    const slider = document.getElementById(`${type}Slider`);
+                    const valueDisplay = document.getElementById(`${type}Value`);
+                    
+                    slider.addEventListener('input', (e) => {
+                        const value = e.target.value;
+                        valueDisplay.textContent = type === 'rotate' ? `${value}°` : value;
+                        
+                        if (this.selectedLayer) {
+                            if (type === 'size') this.selectedLayer.size = parseInt(value);
+                            else if (type === 'x') this.selectedLayer.x = parseInt(value);
+                            else if (type === 'y') this.selectedLayer.y = parseInt(value);
+                            else if (type === 'rotate') this.selectedLayer.rotation = parseInt(value);
+                            
+                            this.render();
+                            this.updateLayersList();
+                        }
+                    });
+                });
+
+                // Color picker
+                document.getElementById('colorPicker').addEventListener('change', (e) => {
+                    if (this.selectedLayer) {
+                        this.selectedLayer.color = e.target.value;
+                        this.render();
+                        this.updateLayersList();
+                    }
+                });
+
+                // Animation controls
+                document.querySelectorAll('.animation-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.animation-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        const animation = btn.dataset.animation;
+                        this.canvas.className = animation !== 'none' ? `canvas-${animation}` : '';
+                    });
+                });
+
+                // Size selector
+                document.querySelectorAll('.size-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.exportSize = parseInt(btn.dataset.size);
+                    });
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Delete' && this.selectedLayer) {
+                        this.deleteSelected();
+                    } else if (e.key === 'Escape') {
+                        this.selectedLayer = null;
+                        this.updateControls();
+                        this.render();
+                    } else if (e.ctrlKey && e.key === 'z') {
+                        e.preventDefault();
+                        this.undoLast();
+                    } else if (e.ctrlKey && e.key === 'd') {
+                        e.preventDefault();
+                        this.duplicateSelected();
+                    }
+                });
+            }
+
+            addElement(x, y) {
+                const layer = {
+                    id: Date.now() + Math.random(),
+                    type: this.selectedComponent,
+                    x: x,
+                    y: y,
+                    size: 50,
+                    rotation: 0,
+                    color: document.getElementById('colorPicker').value
+                };
+
+                this.layers.push(layer);
+                this.selectedLayer = layer;
+                this.updateControls();
+                this.render();
+                this.updateLayersList();
+                this.updateStats();
+                this.saveHistory();
+            }
+
+            selectLayerAt(x, y) {
+                for (let i = this.layers.length - 1; i >= 0; i--) {
+                    const layer = this.layers[i];
+                    const dx = x - layer.x;
+                    const dy = y - layer.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance <= layer.size) {
+                        this.selectedLayer = layer;
+                        this.updateControls();
+                        this.updateLayersList();
+                        this.render();
+                        return;
+                    }
+                }
+            }
+
+            updateControls() {
+                if (this.selectedLayer) {
+                    document.getElementById('sizeSlider').value = this.selectedLayer.size;
+                    document.getElementById('xSlider').value = this.selectedLayer.x;
+                    document.getElementById('ySlider').value = this.selectedLayer.y;
+                    document.getElementById('rotateSlider').value = this.selectedLayer.rotation;
+                    document.getElementById('colorPicker').value = this.selectedLayer.color;
+                    
+                    document.getElementById('sizeValue').textContent = this.selectedLayer.size;
+                    document.getElementById('xValue').textContent = this.selectedLayer.x;
+                    document.getElementById('yValue').textContent = this.selectedLayer.y;
+                    document.getElementById('rotateValue').textContent = `${this.selectedLayer.rotation}°`;
+                }
+            }
+
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Background
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                this.layers.forEach(layer => {
+                    this.ctx.save();
+                    this.ctx.translate(layer.x, layer.y);
+                    this.ctx.rotate((layer.rotation * Math.PI) / 180);
+                    
+                    this.drawElement(layer);
+                    
+                    // Selection indicator
+                    if (layer === this.selectedLayer) {
+                        this.ctx.strokeStyle = '#4f46e5';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.setLineDash([5, 5]);
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, layer.size + 5, 0, 2 * Math.PI);
+                        this.ctx.stroke();
+                        this.ctx.setLineDash([]);
+                    }
+                    
+                    this.ctx.restore();
+                });
+            }
+
+            drawElement(layer) {
+                this.ctx.fillStyle = layer.color;
+                const size = layer.size;
+                
+                switch (layer.type) {
+                    case 'circle':
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, size, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                        
+                    case 'square':
+                        this.ctx.fillRect(-size, -size, size * 2, size * 2);
+                        break;
+                        
+                    case 'heart':
+                        this.drawHeart(size);
+                        break;
+                        
+                    case 'eyes-normal':
+                        this.drawNormalEyes(size);
+                        break;
+                        
+                    case 'eyes-wink':
+                        this.drawWinkEyes(size);
+                        break;
+                        
+                    case 'eyes-closed':
+                        this.drawClosedEyes(size);
+                        break;
+                        
+                    case 'mouth-smile':
+                        this.drawSmileMouth(size);
+                        break;
+                        
+                    case 'mouth-sad':
+                        this.drawSadMouth(size);
+                        break;
+                        
+                    case 'mouth-open':
+                        this.drawOpenMouth(size);
+                        break;
+                        
+                    case 'hat':
+                        this.drawHat(size);
+                        break;
+                        
+                    case 'glasses':
+                        this.drawGlasses(size);
+                        break;
+                        
+                    case 'mustache':
+                        this.drawMustache(size);
+                        break;
+                }
+            }
+
+            drawHeart(size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, size * 0.3);
+                this.ctx.bezierCurveTo(-size, -size * 0.3, -size * 1.5, size * 0.3, 0, size * 1.2);
+                this.ctx.bezierCurveTo(size * 1.5, size * 0.3, size, -size * 0.3, 0, size * 0.3);
+                this.ctx.fill();
+            }
+
+            drawNormalEyes(size) {
+                // Left eye
+                this.ctx.fillStyle = '#000000';
+                this.ctx.beginPath();
+                this.ctx.arc(-size * 0.3, -size * 0.2, size * 0.15, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                // Right eye
+                this.ctx.beginPath();
+                this.ctx.arc(size * 0.3, -size * 0.2, size * 0.15, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                // Highlights
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.beginPath();
+                this.ctx.arc(-size * 0.25, -size * 0.25, size * 0.05, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(size * 0.35, -size * 0.25, size * 0.05, 0, 2 * Math.PI);
+                this.ctx.fill();
+            }
+
+            drawWinkEyes(size) {
+                // Left eye (closed)
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = size * 0.08;
+                this.ctx.lineCap = 'round';
+                this.ctx.beginPath();
+                this.ctx.moveTo(-size * 0.45, -size * 0.2);
+                this.ctx.lineTo(-size * 0.15, -size * 0.2);
+                this.ctx.stroke();
+                
+                // Right eye (open)
+                this.ctx.fillStyle = '#000000';
+                this.ctx.beginPath();
+                this.ctx.arc(size * 0.3, -size * 0.2, size * 0.15, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                // Right eye highlight
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.beginPath();
+                this.ctx.arc(size * 0.35, -size * 0.25, size * 0.05, 0, 2 * Math.PI);
+                this.ctx.fill();
+            }
+
+            drawClosedEyes(size) {
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = size * 0.08;
+                this.ctx.lineCap = 'round';
+                
+                // Left eye
+                this.ctx.beginPath();
+                this.ctx.moveTo(-size * 0.45, -size * 0.2);
+                this.ctx.lineTo(-size * 0.15, -size * 0.2);
+                this.ctx.stroke();
+                
+                // Right eye
+                this.ctx.beginPath();
+                this.ctx.moveTo(size * 0.15, -size * 0.2);
+                this.ctx.lineTo(size * 0.45, -size * 0.2);
+                this.ctx.stroke();
+            }
+
+            drawSmileMouth(size) {
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = size * 0.08;
+                this.ctx.lineCap = 'round';
+                this.ctx.beginPath();
+                this.ctx.arc(0, size * 0.1, size * 0.4, 0.2 * Math.PI, 0.8 * Math.PI);
+                this.ctx.stroke();
+            }
+
+            drawSadMouth(size) {
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = size * 0.08;
+                this.ctx.lineCap = 'round';
+                this.ctx.beginPath();
+                this.ctx.arc(0, size * 0.6, size * 0.4, 1.2 * Math.PI, 1.8 * Math.PI);
+                this.ctx.stroke();
+            }
+
+            drawOpenMouth(size) {
+                this.ctx.fillStyle = '#000000';
+                this.ctx.beginPath();
+                this.ctx.ellipse(0, size * 0.3, size * 0.15, size * 0.2, 0, 0, 2 * Math.PI);
+                this.ctx.fill();
+            }
+
+            drawHat(size) {
+                // Hat brim
+                this.ctx.fillStyle = layer.color;
+                this.ctx.fillRect(-size * 1.2, -size * 0.8, size * 2.4, size * 0.2);
+                
+                // Hat top
+                this.ctx.fillRect(-size * 0.6, -size * 1.4, size * 1.2, size * 0.6);
+                
+                // Hat band
+                this.ctx.fillStyle = '#8b4513';
+                this.ctx.fillRect(-size * 0.6, -size * 0.9, size * 1.2, size * 0.15);
+            }
+
+            drawGlasses(size) {
+                // Left lens
+                this.ctx.strokeStyle = '#000000';
+                this.ctx.lineWidth = size * 0.06;
+                this.ctx.beginPath();
+                this.ctx.arc(-size * 0.3, -size * 0.1, size * 0.25, 0, 2 * Math.PI);
+                this.ctx.stroke();
+                
+                // Right lens
+                this.ctx.beginPath();
+                this.ctx.arc(size * 0.3, -size * 0.1, size * 0.25, 0, 2 * Math.PI);
+                this.ctx.stroke();
+                
+                // Bridge
+                this.ctx.beginPath();
+                this.ctx.moveTo(-size * 0.05, -size * 0.1);
+                this.ctx.lineTo(size * 0.05, -size * 0.1);
+                this.ctx.stroke();
+                
+                // Left temple
+                this.ctx.beginPath();
+                this.ctx.moveTo(-size * 0.55, -size * 0.1);
+                this.ctx.lineTo(-size * 0.8, -size * 0.05);
+                this.ctx.stroke();
+                
+                // Right temple
+                this.ctx.beginPath();
+                this.ctx.moveTo(size * 0.55, -size * 0.1);
+                this.ctx.lineTo(size * 0.8, -size * 0.05);
+                this.ctx.stroke();
+            }
+
+            drawMustache(size) {
+                this.ctx.fillStyle = '#4a4a4a';
+                this.ctx.beginPath();
+                this.ctx.ellipse(-size * 0.2, size * 0.1, size * 0.25, size * 0.1, -0.3, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.ellipse(size * 0.2, size * 0.1, size * 0.25, size * 0.1, 0.3, 0, 2 * Math.PI);
+                this.ctx.fill();
+            }
+
+            loadTemplate(templateType) {
+                this.layers = [];
+                
+                switch (templateType) {
+                    case 'happy':
+                        this.layers.push(
+                            { id: 1, type: 'circle', x: 200, y: 200, size: 80, rotation: 0, color: '#ffd700' },
+                            { id: 2, type: 'eyes-normal', x: 200, y: 180, size: 40, rotation: 0, color: '#000000' },
+                            { id: 3, type: 'mouth-smile', x: 200, y: 220, size: 35, rotation: 0, color: '#000000' }
+                        );
+                        break;
+                        
+                    case 'cool':
+                        this.layers.push(
+                            { id: 1, type: 'circle', x: 200, y: 200, size: 80, rotation: 0, color: '#ffd700' },
+                            { id: 2, type: 'glasses', x: 200, y: 180, size: 40, rotation: 0, color: '#000000' },
+                            { id: 3, type: 'mouth-smile', x: 200, y: 220, size: 30, rotation: 0, color: '#000000' }
+                        );
+                        break;
+                        
+                    case 'heart':
+                        this.layers.push(
+                            { id: 1, type: 'heart', x: 200, y: 200, size: 80, rotation: 0, color: '#ff6b6b' }
+                        );
+                        break;
+                        
+                    case 'star':
+                        this.layers.push(
+                            { id: 1, type: 'circle', x: 200, y: 200, size: 80, rotation: 0, color: '#ffd700' },
+                            { id: 2, type: 'eyes-closed', x: 200, y: 180, size: 40, rotation: 0, color: '#000000' },
+                            { id: 3, type: 'mouth-smile', x: 200, y: 220, size: 35, rotation: 0, color: '#000000' }
+                        );
+                        break;
+                }
+                
+                this.selectedLayer = null;
+                this.render();
+                this.updateLayersList();
+                this.updateStats();
+                this.saveHistory();
+            }
+
+            updateLayersList() {
+                const layersList = document.getElementById('layersList');
+                
+                if (this.layers.length === 0) {
+                    layersList.innerHTML = '<div style="text-align: center; padding: 20px; color: #9ca3af;">No layers yet. Add some elements!</div>';
+                    return;
+                }
+                
+                layersList.innerHTML = this.layers.map((layer, index) => `
+                    <div class="layer-item ${layer === this.selectedLayer ? 'active' : ''}" onclick="emojiBuilder.selectLayer(${layer.id})">
+                        <span>Layer ${index + 1} (${this.getLayerTypeName(layer.type)})</span>
+                        <div class="layer-actions">
+                            <button class="layer-btn" onclick="event.stopPropagation(); emojiBuilder.moveLayerUp(${layer.id})" title="Move up">↑</button>
+                            <button class="layer-btn" onclick="event.stopPropagation(); emojiBuilder.moveLayerDown(${layer.id})" title="Move down">↓</button>
+                            <button class="layer-btn" onclick="event.stopPropagation(); emojiBuilder.toggleLayerVisibility(${layer.id})" title="Toggle visibility">${layer.visible !== false ? '👁️' : '🙈'}</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            getLayerTypeName(type) {
+                const names = {
+                    'circle': 'Circle',
+                    'square': 'Square',
+                    'heart': 'Heart',
+                    'eyes-normal': 'Eyes',
+                    'eyes-wink': 'Wink',
+                    'eyes-closed': 'Closed Eyes',
+                    'mouth-smile': 'Smile',
+                    'mouth-sad': 'Sad',
+                    'mouth-open': 'Open Mouth',
+                    'hat': 'Hat',
+                    'glasses': 'Glasses',
+                    'mustache': 'Mustache'
+                };
+                return names[type] || type;
+            }
+
+            selectLayer(layerId) {
+                this.selectedLayer = this.layers.find(layer => layer.id === layerId);
+                this.updateControls();
+                this.updateLayersList();
+                this.render();
+            }
+
+            moveLayerUp(layerId) {
+                const index = this.layers.findIndex(layer => layer.id === layerId);
+                if (index < this.layers.length - 1) {
+                    [this.layers[index], this.layers[index + 1]] = [this.layers[index + 1], this.layers[index]];
+                    this.updateLayersList();
+                    this.render();
+                }
+            }
+
+            moveLayerDown(layerId) {
+                const index = this.layers.findIndex(layer => layer.id === layerId);
+                if (index > 0) {
+                    [this.layers[index], this.layers[index - 1]] = [this.layers[index - 1], this.layers[index]];
+                    this.updateLayersList();
+                    this.render();
+                }
+            }
+
+            toggleLayerVisibility(layerId) {
+                const layer = this.layers.find(layer => layer.id === layerId);
+                if (layer) {
+                    layer.visible = layer.visible !== false ? false : true;
+                    this.updateLayersList();
+                    this.render();
+                }
+            }
+
+            duplicateSelected() {
+                if (this.selectedLayer) {
+                    const newLayer = {
+                        ...this.selectedLayer,
+                        id: Date.now() + Math.random(),
+                        x: this.selectedLayer.x + 20,
+                        y: this.selectedLayer.y + 20
+                    };
+                    this.layers.push(newLayer);
+                    this.selectedLayer = newLayer;
+                    this.updateControls();
+                    this.updateLayersList();
+                    this.render();
+                    this.updateStats();
+                    this.saveHistory();
+                }
+            }
+
+            deleteSelected() {
+                if (this.selectedLayer) {
+                    this.layers = this.layers.filter(layer => layer !== this.selectedLayer);
+                    this.selectedLayer = null;
+                    this.updateControls();
+                    this.updateLayersList();
+                    this.render();
+                    this.updateStats();
+                    this.saveHistory();
+                }
+            }
+
+            updateStats() {
+                document.getElementById('layerCount').textContent = this.layers.length;
+                document.getElementById('elementCount').textContent = this.layers.filter(layer => layer.visible !== false).length;
+            }
+
+            saveHistory() {
+                this.history.push(JSON.parse(JSON.stringify(this.layers)));
+                if (this.history.length > 50) {
+                    this.history.shift();
+                }
+            }
+
+            undoLast() {
+                if (this.history.length > 1) {
+                    this.history.pop();
+                    this.layers = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
+                    this.selectedLayer = null;
+                    this.updateControls();
+                    this.updateLayersList();
+                    this.render();
+                    this.updateStats();
+                }
+            }
+
+            clearCanvas() {
+                if (confirm('Are you sure you want to clear all elements?')) {
+                    this.layers = [];
+                    this.selectedLayer = null;
+                    this.updateControls();
+                    this.updateLayersList();
+                    this.render();
+                    this.updateStats();
+                    this.saveHistory();
+                }
+            }
+
+            exportPNG() {
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = this.exportSize;
+                exportCanvas.height = this.exportSize;
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                const scale = this.exportSize / 400;
+                exportCtx.scale(scale, scale);
+                
+                // Background
+                exportCtx.fillStyle = '#ffffff';
+                exportCtx.fillRect(0, 0, 400, 400);
+                
+                this.layers.forEach(layer => {
+                    if (layer.visible !== false) {
+                        exportCtx.save();
+                        exportCtx.translate(layer.x, layer.y);
+                        exportCtx.rotate((layer.rotation * Math.PI) / 180);
+                        exportCtx.fillStyle = layer.color;
+                        
+                        const originalCtx = this.ctx;
+                        this.ctx = exportCtx;
+                        this.drawElement(layer);
+                        this.ctx = originalCtx;
+                        
+                        exportCtx.restore();
+                    }
+                });
+                
+                const link = document.createElement('a');
+                link.download = `emoji-${Date.now()}.png`;
+                link.href = exportCanvas.toDataURL();
+                link.click();
+            }
+
+            exportSVG() {
+                let svg = `<svg width="${this.exportSize}" height="${this.exportSize}" xmlns="http://www.w3.org/2000/svg">`;
+                svg += `<rect width="100%" height="100%" fill="white"/>`;
+                
+                const scale = this.exportSize / 400;
+                
+                this.layers.forEach(layer => {
+                    if (layer.visible !== false) {
+                        const x = layer.x * scale;
+                        const y = layer.y * scale;
+                        const size = layer.size * scale;
+                        const rotation = layer.rotation;
+                        
+                        svg += `<g transform="translate(${x},${y}) rotate(${rotation})">`;
+                        
+                        switch (layer.type) {
+                            case 'circle':
+                                svg += `<circle cx="0" cy="0" r="${size}" fill="${layer.color}"/>`;
+                                break;
+                            case 'square':
+                                svg += `<rect x="${-size}" y="${-size}" width="${size * 2}" height="${size * 2}" fill="${layer.color}"/>`;
+                                break;
+                            case 'heart':
+                                svg += `<path d="M0,${size * 0.3} C${-size},${-size * 0.3} ${-size * 1.5},${size * 0.3} 0,${size * 1.2} C${size * 1.5},${size * 0.3} ${size},${-size * 0.3} 0,${size * 0.3}Z" fill="${layer.color}"/>`;
+                                break;
+                        }
+                        
+                        svg += '</g>';
+                    }
+                });
+                
+                svg += '</svg>';
+                
+                const blob = new Blob([svg], { type: 'image/svg+xml' });
+                const link = document.createElement('a');
+                link.download = `emoji-${Date.now()}.svg`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            }
+
+            saveProject() {
+                const projectData = {
+                    layers: this.layers,
+                    version: '1.0',
+                    timestamp: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.download = `emoji-project-${Date.now()}.json`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            }
+
+            loadProject() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            try {
+                                const projectData = JSON.parse(e.target.result);
+                                this.layers = projectData.layers || [];
+                                this.selectedLayer = null;
+                                this.updateControls();
+                                this.updateLayersList();
+                                this.render();
+                                this.updateStats();
+                                this.saveHistory();
+                            } catch (error) {
+                                alert('Error loading project file. Please make sure it\'s a valid JSON file.');
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                };
+                
+                input.click();
+            }
+        }
+
+        // Global functions for button clicks
+        let emojiBuilder;
+        
+        function clearCanvas() {
+            emojiBuilder.clearCanvas();
+        }
+
+        function undoLast() {
+            emojiBuilder.undoLast();
+        }
+
+        function duplicateSelected() {
+            emojiBuilder.duplicateSelected();
+        }
+
+        function deleteSelected() {
+            emojiBuilder.deleteSelected();
+        }
+
+        function saveProject() {
+            emojiBuilder.saveProject();
+        }
+
+        function loadProject() {
+            emojiBuilder.loadProject();
+        }
+
+        function exportPNG() {
+            emojiBuilder.exportPNG();
+        }
+
+        function exportSVG() {
+            emojiBuilder.exportSVG();
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            emojiBuilder = new EmojiBuilder();
+            
+            // Auto-select the first face shape
+            document.querySelector('[data-component="circle"]').click();
+            
+            // Set initial animation to none
+            document.querySelector('[data-animation="none"]').classList.add('active');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Workshop Pro - Professional Creative Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #emojiCanvas {
+            border: 3px solid #ddd;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            cursor: crosshair;
+            transition: transform 0.2s ease;
+        }
+
+        #emojiCanvas:hover {
+            transform: scale(1.02);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #dee2e6;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .shape-grid, .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .shape-btn, .feature-btn {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .shape-btn:hover, .feature-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.1);
+        }
+
+        .shape-btn.active, .feature-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            aspect-ratio: 1;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .layers-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            background: white;
+        }
+
+        .layer-item:hover {
+            background: #f8f9fa;
+        }
+
+        .layer-item.active {
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+        }
+
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .animation-preview {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .animation-preview.active {
+            display: block;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header {
+                grid-column: 1;
+            }
+        }
+
+        .advanced-controls {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .advanced-controls.active {
+            display: block;
+        }
+
+        .gradient-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Emoji Workshop Pro</h1>
+            <p class="subtitle">Professional-Grade Creative Builder | Advanced Layer Management | Multi-Format Export</p>
+        </div>
+
+        <!-- Left Panel: Tools & Shapes -->
+        <div class="panel">
+            <div class="control-group">
+                <h3>🔧 Creation Tools</h3>
+                <div class="control-row">
+                    <button class="btn btn-primary" id="drawMode">✏️ Draw</button>
+                    <button class="btn btn-secondary" id="selectMode">🎯 Select</button>
+                </div>
+                <div class="control-row">
+                    <button class="btn btn-secondary" id="moveMode">↔️ Move</button>
+                    <button class="btn btn-secondary" id="eraseMode">🗑️ Erase</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🟡 Base Shapes</h3>
+                <div class="shape-grid">
+                    <div class="shape-btn" data-shape="circle">⭕</div>
+                    <div class="shape-btn" data-shape="square">⬜</div>
+                    <div class="shape-btn" data-shape="triangle">🔺</div>
+                    <div class="shape-btn" data-shape="heart">❤️</div>
+                    <div class="shape-btn" data-shape="star">⭐</div>
+                    <div class="shape-btn" data-shape="oval">🥚</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>👀 Eyes Collection</h3>
+                <div class="feature-grid">
+                    <div class="feature-btn" data-feature="eyes-normal">👀</div>
+                    <div class="feature-btn" data-feature="eyes-wink">😉</div>
+                    <div class="feature-btn" data-feature="eyes-closed">😴</div>
+                    <div class="feature-btn" data-feature="eyes-heart">😍</div>
+                    <div class="feature-btn" data-feature="eyes-angry">😠</div>
+                    <div class="feature-btn" data-feature="eyes-surprised">😱</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>👄 Mouth Expressions</h3>
+                <div class="feature-grid">
+                    <div class="feature-btn" data-feature="mouth-smile">😊</div>
+                    <div class="feature-btn" data-feature="mouth-frown">😞</div>
+                    <div class="feature-btn" data-feature="mouth-open">😮</div>
+                    <div class="feature-btn" data-feature="mouth-laugh">😂</div>
+                    <div class="feature-btn" data-feature="mouth-kiss">😘</div>
+                    <div class="feature-btn" data-feature="mouth-neutral">😐</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🎭 Quick Presets</h3>
+                <div class="preset-grid">
+                    <div class="preset-btn" data-preset="happy">😊</div>
+                    <div class="preset-btn" data-preset="cool">😎</div>
+                    <div class="preset-btn" data-preset="love">😍</div>
+                    <div class="preset-btn" data-preset="angry">😡</div>
+                    <div class="preset-btn" data-preset="surprised">😱</div>
+                    <div class="preset-btn" data-preset="sleepy">😴</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Canvas -->
+        <div class="panel canvas-container">
+            <div class="canvas-controls">
+                <button class="btn btn-secondary" id="undoBtn">↶ Undo</button>
+                <button class="btn btn-secondary" id="redoBtn">↷ Redo</button>
+                <button class="btn btn-secondary" id="clearCanvas">🗑️ Clear</button>
+                <button class="btn btn-primary" id="randomizeBtn">🎲 Randomize</button>
+            </div>
+            
+            <canvas id="emojiCanvas" width="400" height="400"></canvas>
+            
+            <div class="export-options">
+                <button class="btn btn-primary" id="exportPNG">📥 Export PNG</button>
+                <button class="btn btn-primary" id="exportSVG">📥 Export SVG</button>
+                <button class="btn btn-secondary" id="saveProject">💾 Save Project</button>
+                <button class="btn btn-secondary" id="loadProject">📁 Load Project</button>
+            </div>
+
+            <div class="animation-preview" id="animationPreview">
+                <h4>🎬 Animation Preview</h4>
+                <canvas id="previewCanvas" width="100" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- Right Panel: Properties & Layers -->
+        <div class="panel">
+            <div class="control-group">
+                <h3>🎨 Color & Style</h3>
+                <div class="color-picker-container">
+                    <label>Fill:</label>
+                    <input type="color" id="fillColor" value="#FFD700">
+                </div>
+                <div class="color-picker-container">
+                    <label>Stroke:</label>
+                    <input type="color" id="strokeColor" value="#000000">
+                </div>
+                <div class="control-row">
+                    <label>Size:</label>
+                    <input type="range" id="sizeSlider" min="10" max="100" value="50">
+                    <span id="sizeValue">50</span>
+                </div>
+                <div class="control-row">
+                    <label>Stroke Width:</label>
+                    <input type="range" id="strokeWidth" min="0" max="10" value="2">
+                    <span id="strokeValue">2</span>
+                </div>
+                <div class="control-row">
+                    <label>Opacity:</label>
+                    <input type="range" id="opacitySlider" min="0" max="100" value="100">
+                    <span id="opacityValue">100%</span>
+                </div>
+                
+                <button class="btn btn-secondary" id="toggleAdvanced">⚙️ Advanced Options</button>
+                <div class="advanced-controls" id="advancedControls">
+                    <div class="control-row">
+                        <label>Rotation:</label>
+                        <input type="range" id="rotationSlider" min="0" max="360" value="0">
+                        <span id="rotationValue">0°</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Shadow Blur:</label>
+                        <input type="range" id="shadowBlur" min="0" max="20" value="0">
+                        <span id="shadowValue">0</span>
+                    </div>
+                    <div class="gradient-controls">
+                        <input type="checkbox" id="gradientFill">
+                        <label for="gradientFill">Gradient Fill</label>
+                        <input type="color" id="gradientColor2" value="#FF6B6B">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>📚 Layers Manager</h3>
+                <div class="control-row">
+                    <button class="btn btn-primary" id="addLayer">+ Add Layer</button>
+                    <button class="btn btn-secondary" id="deleteLayer">🗑️ Delete</button>
+                </div>
+                <div class="layers-list" id="layersList">
+                    <div class="layer-item active" data-layer="0">
+                        <span>Background Layer</span>
+                        <div>
+                            <button class="btn-secondary" style="padding: 5px;">👁️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>✨ Effects & Animation</h3>
+                <div class="control-row">
+                    <button class="btn btn-secondary" id="addGlow">✨ Glow</button>
+                    <button class="btn btn-secondary" id="addShadow">🌫️ Shadow</button>
+                </div>
+                <div class="control-row">
+                    <button class="btn btn-secondary" id="bounceAnimation">🎾 Bounce</button>
+                    <button class="btn btn-secondary" id="pulseAnimation">💓 Pulse</button>
+                </div>
+                <div class="control-row">
+                    <button class="btn btn-primary" id="previewAnimation">▶️ Preview</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>📊 Statistics</h3>
+                <div style="font-size: 14px; line-height: 1.6;">
+                    <p>Layers: <span id="layerCount">1</span></p>
+                    <p>Elements: <span id="elementCount">0</span></p>
+                    <p>Canvas Size: 400×400px</p>
+                    <p>Export Formats: PNG, SVG</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <input type="file" id="fileInput" style="display: none;" accept=".json">
+
+    <script>
+        class EmojiWorkshop {
+            constructor() {
+                this.canvas = document.getElementById('emojiCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.previewCanvas = document.getElementById('previewCanvas');
+                this.previewCtx = this.previewCanvas.getContext('2d');
+                
+                this.layers = [{ id: 0, name: 'Background Layer', elements: [], visible: true }];
+                this.currentLayer = 0;
+                this.currentTool = 'draw';
+                this.currentShape = 'circle';
+                this.isDrawing = false;
+                this.lastX = 0;
+                this.lastY = 0;
+                this.history = [];
+                this.historyStep = -1;
+                this.elements = [];
+                this.selectedElement = null;
+                this.isDragging = false;
+                this.animationId = null;
+                
+                this.initEventListeners();
+                this.saveState();
+                this.updateUI();
+                this.draw();
+            }
+
+            initEventListeners() {
+                // Canvas events
+                this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                
+                // Tool buttons
+                document.getElementById('drawMode').addEventListener('click', () => this.setTool('draw'));
+                document.getElementById('selectMode').addEventListener('click', () => this.setTool('select'));
+                document.getElementById('moveMode').addEventListener('click', () => this.setTool('move'));
+                document.getElementById('eraseMode').addEventListener('click', () => this.setTool('erase'));
+                
+                // Shape selection
+                document.querySelectorAll('.shape-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelector('.shape-btn.active')?.classList.remove('active');
+                        btn.classList.add('active');
+                        this.currentShape = btn.dataset.shape;
+                    });
+                });
+                
+                // Feature buttons
+                document.querySelectorAll('.feature-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.addFeature(btn.dataset.feature);
+                    });
+                });
+                
+                // Preset buttons
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.loadPreset(btn.dataset.preset);
+                    });
+                });
+                
+                // Control sliders
+                this.setupSliderEvents();
+                
+                // Action buttons
+                document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+                document.getElementById('redoBtn').addEventListener('click', () => this.redo());
+                document.getElementById('clearCanvas').addEventListener('click', () => this.clearCanvas());
+                document.getElementById('randomizeBtn').addEventListener('click', () => this.randomize());
+                
+                // Export buttons
+                document.getElementById('exportPNG').addEventListener('click', () => this.exportPNG());
+                document.getElementById('exportSVG').addEventListener('click', () => this.exportSVG());
+                document.getElementById('saveProject').addEventListener('click', () => this.saveProject());
+                document.getElementById('loadProject').addEventListener('click', () => document.getElementById('fileInput').click());
+                
+                // Layer management
+                document.getElementById('addLayer').addEventListener('click', () => this.addLayer());
+                document.getElementById('deleteLayer').addEventListener('click', () => this.deleteLayer());
+                
+                // Effects and animation
+                document.getElementById('addGlow').addEventListener('click', () => this.addGlowEffect());
+                document.getElementById('addShadow').addEventListener('click', () => this.addShadowEffect());
+                document.getElementById('bounceAnimation').addEventListener('click', () => this.startBounceAnimation());
+                document.getElementById('pulseAnimation').addEventListener('click', () => this.startPulseAnimation());
+                document.getElementById('previewAnimation').addEventListener('click', () => this.toggleAnimationPreview());
+                
+                // Advanced controls
+                document.getElementById('toggleAdvanced').addEventListener('click', () => {
+                    const advanced = document.getElementById('advancedControls');
+                    advanced.classList.toggle('active');
+                });
+                
+                // File input
+                document.getElementById('fileInput').addEventListener('change', this.handleFileLoad.bind(this));
+            }
+
+            setupSliderEvents() {
+                const sliders = ['sizeSlider', 'strokeWidth', 'opacitySlider', 'rotationSlider', 'shadowBlur'];
+                sliders.forEach(id => {
+                    const slider = document.getElementById(id);
+                    const valueSpan = document.getElementById(id.replace('Slider', 'Value').replace('Width', 'Value').replace('Blur', 'Value'));
+                    
+                    slider.addEventListener('input', (e) => {
+                        const value = e.target.value;
+                        if (valueSpan) {
+                            valueSpan.textContent = id.includes('opacity') ? `${value}%` : 
+                                                   id.includes('rotation') ? `${value}°` : value;
+                        }
+                        this.updateSelectedElement();
+                    });
+                });
+
+                document.getElementById('fillColor').addEventListener('change', () => this.updateSelectedElement());
+                document.getElementById('strokeColor').addEventListener('change', () => this.updateSelectedElement());
+                document.getElementById('gradientFill').addEventListener('change', () => this.updateSelectedElement());
+                document.getElementById('gradientColor2').addEventListener('change', () => this.updateSelectedElement());
+            }
+
+            setTool(tool) {
+                this.currentTool = tool;
+                document.querySelectorAll('.btn-primary').forEach(btn => btn.className = 'btn btn-secondary');
+                document.getElementById(tool + 'Mode').className = 'btn btn-primary';
+                this.canvas.style.cursor = tool === 'draw' ? 'crosshair' : 
+                                          tool === 'select' ? 'pointer' : 
+                                          tool === 'move' ? 'move' : 'not-allowed';
+            }
+
+            handleMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                this.lastX = x;
+                this.lastY = y;
+                this.isDrawing = true;
+
+                if (this.currentTool === 'draw') {
+                    this.addElement(x, y);
+                } else if (this.currentTool === 'select') {
+                    this.selectElement(x, y);
+                } else if (this.currentTool === 'move' && this.selectedElement) {
+                    this.isDragging = true;
+                } else if (this.currentTool === 'erase') {
+                    this.eraseElement(x, y);
+                }
+            }
+
+            handleMouseMove(e) {
+                if (!this.isDrawing) return;
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if (this.currentTool === 'move' && this.isDragging && this.selectedElement) {
+                    this.selectedElement.x += x - this.lastX;
+                    this.selectedElement.y += y - this.lastY;
+                    this.draw();
+                }
+
+                this.lastX = x;
+                this.lastY = y;
+            }
+
+            handleMouseUp() {
+                this.isDrawing = false;
+                this.isDragging = false;
+                if (this.currentTool === 'draw' || this.currentTool === 'move') {
+                    this.saveState();
+                }
+            }
+
+            addElement(x, y) {
+                const element = {
+                    id: Date.now() + Math.random(),
+                    type: this.currentShape,
+                    x: x,
+                    y: y,
+                    size: parseInt(document.getElementById('sizeSlider').value),
+                    fillColor: document.getElementById('fillColor').value,
+                    strokeColor: document.getElementById('strokeColor').value,
+                    strokeWidth: parseInt(document.getElementById('strokeWidth').value),
+                    opacity: parseInt(document.getElementById('opacitySlider').value) / 100,
+                    rotation: parseInt(document.getElementById('rotationSlider').value),
+                    shadowBlur: parseInt(document.getElementById('shadowBlur').value),
+                    gradient: document.getElementById('gradientFill').checked,
+                    gradientColor2: document.getElementById('gradientColor2').value,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(element);
+                this.elements.push(element);
+                this.selectedElement = element;
+                this.draw();
+                this.updateUI();
+            }
+
+            addFeature(featureType) {
+                const canvas = this.canvas;
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                switch(featureType) {
+                    case 'eyes-normal':
+                        this.addEye(centerX - 30, centerY - 20);
+                        this.addEye(centerX + 30, centerY - 20);
+                        break;
+                    case 'eyes-wink':
+                        this.addEye(centerX - 30, centerY - 20);
+                        this.addWinkEye(centerX + 30, centerY - 20);
+                        break;
+                    case 'eyes-closed':
+                        this.addClosedEye(centerX - 30, centerY - 20);
+                        this.addClosedEye(centerX + 30, centerY - 20);
+                        break;
+                    case 'eyes-heart':
+                        this.addHeartEyes(centerX, centerY - 20);
+                        break;
+                    case 'eyes-angry':
+                        this.addAngryEyes(centerX, centerY - 20);
+                        break;
+                    case 'eyes-surprised':
+                        this.addSurprisedEyes(centerX, centerY - 20);
+                        break;
+                    case 'mouth-smile':
+                        this.addSmile(centerX, centerY + 30);
+                        break;
+                    case 'mouth-frown':
+                        this.addFrown(centerX, centerY + 30);
+                        break;
+                    case 'mouth-open':
+                        this.addOpenMouth(centerX, centerY + 30);
+                        break;
+                    case 'mouth-laugh':
+                        this.addLaughMouth(centerX, centerY + 30);
+                        break;
+                    case 'mouth-kiss':
+                        this.addKissMouth(centerX, centerY + 30);
+                        break;
+                    case 'mouth-neutral':
+                        this.addNeutralMouth(centerX, centerY + 30);
+                        break;
+                }
+                
+                this.draw();
+                this.saveState();
+                this.updateUI();
+            }
+
+            addEye(x, y) {
+                const eye = {
+                    id: Date.now() + Math.random(),
+                    type: 'circle',
+                    x: x,
+                    y: y,
+                    size: 15,
+                    fillColor: '#FFFFFF',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const pupil = {
+                    id: Date.now() + Math.random() + 1,
+                    type: 'circle',
+                    x: x,
+                    y: y,
+                    size: 8,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 0,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(eye, pupil);
+                this.elements.push(eye, pupil);
+            }
+
+            addWinkEye(x, y) {
+                const wink = {
+                    id: Date.now() + Math.random(),
+                    type: 'line',
+                    x: x,
+                    y: y,
+                    size: 20,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 3,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(wink);
+                this.elements.push(wink);
+            }
+            
+            addClosedEye(x, y) {
+                const eye = {
+                    id: Date.now() + Math.random(),
+                    type: 'line',
+                    x: x,
+                    y: y,
+                    size: 20,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 3,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(eye);
+                this.elements.push(eye);
+            }
+
+            addSmile(x, y) {
+                const smile = {
+                    id: Date.now() + Math.random(),
+                    type: 'arc',
+                    x: x,
+                    y: y,
+                    size: 40,
+                    fillColor: 'transparent',
+                    strokeColor: '#000000',
+                    strokeWidth: 3,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer,
+                    startAngle: 0,
+                    endAngle: Math.PI
+                };
+                
+                this.layers[this.currentLayer].elements.push(smile);
+                this.elements.push(smile);
+            }
+
+            addFrown(x, y) {
+                const frown = {
+                    id: Date.now() + Math.random(),
+                    type: 'arc',
+                    x: x,
+                    y: y,
+                    size: 40,
+                    fillColor: 'transparent',
+                    strokeColor: '#000000',
+                    strokeWidth: 3,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer,
+                    startAngle: Math.PI,
+                    endAngle: 0
+                };
+                
+                this.layers[this.currentLayer].elements.push(frown);
+                this.elements.push(frown);
+            }
+            
+            addOpenMouth(x, y) {
+                const mouth = {
+                    id: Date.now() + Math.random(),
+                    type: 'circle',
+                    x: x,
+                    y: y,
+                    size: 20,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(mouth);
+                this.elements.push(mouth);
+            }
+            
+            addLaughMouth(x, y) {
+                const mouth = {
+                    id: Date.now() + Math.random(),
+                    type: 'arc',
+                    x: x,
+                    y: y,
+                    size: 50,
+                    fillColor: 'transparent',
+                    strokeColor: '#000000',
+                    strokeWidth: 3,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer,
+                    startAngle: 0.2,
+                    endAngle: Math.PI - 0.2
+                };
+                
+                this.layers[this.currentLayer].elements.push(mouth);
+                this.elements.push(mouth);
+            }
+            
+            addKissMouth(x, y) {
+                const mouth = {
+                    id: Date.now() + Math.random(),
+                    type: 'heart',
+                    x: x,
+                    y: y,
+                    size: 15,
+                    fillColor: '#FF69B4',
+                    strokeColor: '#FF1493',
+                    strokeWidth: 1,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(mouth);
+                this.elements.push(mouth);
+            }
+            
+            addNeutralMouth(x, y) {
+                const mouth = {
+                    id: Date.now() + Math.random(),
+                    type: 'line',
+                    x: x,
+                    y: y,
+                    size: 30,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(mouth);
+                this.elements.push(mouth);
+            }
+
+            loadPreset(presetType) {
+                this.clearCanvas();
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                
+                // Add base face
+                const face = {
+                    id: Date.now(),
+                    type: 'circle',
+                    x: centerX,
+                    y: centerY,
+                    size: 80,
+                    fillColor: '#FFD700',
+                    strokeColor: '#FFA500',
+                    strokeWidth: 3,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(face);
+                this.elements.push(face);
+                
+                switch(presetType) {
+                    case 'happy':
+                        this.addEye(centerX - 25, centerY - 20);
+                        this.addEye(centerX + 25, centerY - 20);
+                        this.addSmile(centerX, centerY + 20);
+                        break;
+                    case 'cool':
+                        this.addSunglasses(centerX, centerY - 10);
+                        this.addSmile(centerX, centerY + 25);
+                        break;
+                    case 'love':
+                        this.addHeartEyes(centerX, centerY - 20);
+                        this.addSmile(centerX, centerY + 20);
+                        break;
+                    case 'angry':
+                        this.addAngryEyes(centerX, centerY - 20);
+                        this.addFrown(centerX, centerY + 30);
+                        break;
+                    case 'surprised':
+                        this.addSurprisedEyes(centerX, centerY - 20);
+                        this.addOpenMouth(centerX, centerY + 25);
+                        break;
+                    case 'sleepy':
+                        this.addClosedEye(centerX - 25, centerY - 20);
+                        this.addClosedEye(centerX + 25, centerY - 20);
+                        this.addSmile(centerX, centerY + 20);
+                        break;
+                }
+                
+                this.draw();
+                this.saveState();
+                this.updateUI();
+            }
+
+            addSunglasses(x, y) {
+                const leftLens = {
+                    id: Date.now() + Math.random(),
+                    type: 'circle',
+                    x: x - 25,
+                    y: y,
+                    size: 20,
+                    fillColor: '#333333',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const rightLens = {
+                    id: Date.now() + Math.random() + 1,
+                    type: 'circle',
+                    x: x + 25,
+                    y: y,
+                    size: 20,
+                    fillColor: '#333333',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const bridge = {
+                    id: Date.now() + Math.random() + 2,
+                    type: 'line',
+                    x: x,
+                    y: y,
+                    size: 50,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 5,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(leftLens, rightLens, bridge);
+                this.elements.push(leftLens, rightLens, bridge);
+            }
+
+            addHeartEyes(x, y) {
+                const leftHeart = {
+                    id: Date.now() + Math.random(),
+                    type: 'heart',
+                    x: x - 25,
+                    y: y,
+                    size: 20,
+                    fillColor: '#FF69B4',
+                    strokeColor: '#FF1493',
+                    strokeWidth: 1,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const rightHeart = {
+                    id: Date.now() + Math.random() + 1,
+                    type: 'heart',
+                    x: x + 25,
+                    y: y,
+                    size: 20,
+                    fillColor: '#FF69B4',
+                    strokeColor: '#FF1493',
+                    strokeWidth: 1,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(leftHeart, rightHeart);
+                this.elements.push(leftHeart, rightHeart);
+            }
+
+            addAngryEyes(x, y) {
+                const leftEyebrow = {
+                    id: Date.now() + Math.random(),
+                    type: 'line',
+                    x: x - 25,
+                    y: y - 10,
+                    size: 20,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 4,
+                    opacity: 1,
+                    rotation: -15,
+                    layer: this.currentLayer
+                };
+                
+                const rightEyebrow = {
+                    id: Date.now() + Math.random() + 1,
+                    type: 'line',
+                    x: x + 25,
+                    y: y - 10,
+                    size: 20,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 4,
+                    opacity: 1,
+                    rotation: 15,
+                    layer: this.currentLayer
+                };
+                
+                this.addEye(x - 25, y + 5);
+                this.addEye(x + 25, y + 5);
+                
+                this.layers[this.currentLayer].elements.push(leftEyebrow, rightEyebrow);
+                this.elements.push(leftEyebrow, rightEyebrow);
+            }
+
+            addSurprisedEyes(x, y) {
+                const leftEye = {
+                    id: Date.now() + Math.random(),
+                    type: 'circle',
+                    x: x - 25,
+                    y: y,
+                    size: 25,
+                    fillColor: '#FFFFFF',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const rightEye = {
+                    id: Date.now() + Math.random() + 1,
+                    type: 'circle',
+                    x: x + 25,
+                    y: y,
+                    size: 25,
+                    fillColor: '#FFFFFF',
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const leftPupil = {
+                    id: Date.now() + Math.random() + 2,
+                    type: 'circle',
+                    x: x - 25,
+                    y: y,
+                    size: 12,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 0,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                const rightPupil = {
+                    id: Date.now() + Math.random() + 3,
+                    type: 'circle',
+                    x: x + 25,
+                    y: y,
+                    size: 12,
+                    fillColor: '#000000',
+                    strokeColor: '#000000',
+                    strokeWidth: 0,
+                    opacity: 1,
+                    rotation: 0,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(leftEye, rightEye, leftPupil, rightPupil);
+                this.elements.push(leftEye, rightEye, leftPupil, rightPupil);
+            }
+
+            selectElement(x, y) {
+                let selected = null;
+                
+                // Search from top layer to bottom
+                for (let i = this.layers.length - 1; i >= 0; i--) {
+                    if (!this.layers[i].visible) continue;
+                    
+                    for (let j = this.layers[i].elements.length - 1; j >= 0; j--) {
+                        const element = this.layers[i].elements[j];
+                        if (this.isPointInElement(x, y, element)) {
+                            selected = element;
+                            break;
+                        }
+                    }
+                    if (selected) break;
+                }
+                
+                this.selectedElement = selected;
+                if (selected) {
+                    this.updatePropertyControls(selected);
+                }
+                this.draw();
+            }
+
+            isPointInElement(x, y, element) {
+                const distance = Math.sqrt(Math.pow(x - element.x, 2) + Math.pow(y - element.y, 2));
+                return distance <= element.size / 2;
+            }
+
+            updatePropertyControls(element) {
+                document.getElementById('fillColor').value = element.fillColor;
+                document.getElementById('strokeColor').value = element.strokeColor;
+                document.getElementById('sizeSlider').value = element.size;
+                document.getElementById('strokeWidth').value = element.strokeWidth;
+                document.getElementById('opacitySlider').value = element.opacity * 100;
+                document.getElementById('rotationSlider').value = element.rotation || 0;
+                document.getElementById('shadowBlur').value = element.shadowBlur || 0;
+                document.getElementById('gradientFill').checked = element.gradient || false;
+                document.getElementById('gradientColor2').value = element.gradientColor2 || '#FF6B6B';
+                
+                // Update display values
+                document.getElementById('sizeValue').textContent = element.size;
+                document.getElementById('strokeValue').textContent = element.strokeWidth;
+                document.getElementById('opacityValue').textContent = `${Math.round(element.opacity * 100)}%`;
+                document.getElementById('rotationValue').textContent = `${element.rotation || 0}°`;
+                document.getElementById('shadowValue').textContent = element.shadowBlur || 0;
+            }
+
+            updateSelectedElement() {
+                if (!this.selectedElement) return;
+                
+                this.selectedElement.fillColor = document.getElementById('fillColor').value;
+                this.selectedElement.strokeColor = document.getElementById('strokeColor').value;
+                this.selectedElement.size = parseInt(document.getElementById('sizeSlider').value);
+                this.selectedElement.strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+                this.selectedElement.opacity = parseInt(document.getElementById('opacitySlider').value) / 100;
+                this.selectedElement.rotation = parseInt(document.getElementById('rotationSlider').value);
+                this.selectedElement.shadowBlur = parseInt(document.getElementById('shadowBlur').value);
+                this.selectedElement.gradient = document.getElementById('gradientFill').checked;
+                this.selectedElement.gradientColor2 = document.getElementById('gradientColor2').value;
+                
+                this.draw();
+            }
+
+            eraseElement(x, y) {
+                for (let i = this.layers.length - 1; i >= 0; i--) {
+                    const layer = this.layers[i];
+                    if (!layer.visible) continue;
+                    
+                    for (let j = layer.elements.length - 1; j >= 0; j--) {
+                        const element = layer.elements[j];
+                        if (this.isPointInElement(x, y, element)) {
+                            layer.elements.splice(j, 1);
+                            this.elements = this.elements.filter(e => e.id !== element.id);
+                            this.draw();
+                            this.saveState();
+                            this.updateUI();
+                            return;
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw background
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw elements by layer
+                for (const layer of this.layers) {
+                    if (!layer.visible) continue;
+                    
+                    for (const element of layer.elements) {
+                        this.drawElement(element);
+                    }
+                }
+                
+                // Highlight selected element
+                if (this.selectedElement) {
+                    this.drawSelectionOutline(this.selectedElement);
+                }
+            }
+
+            drawElement(element) {
+                this.ctx.save();
+                
+                // Apply transformations
+                this.ctx.globalAlpha = element.opacity;
+                this.ctx.translate(element.x, element.y);
+                if (element.rotation) {
+                    this.ctx.rotate(element.rotation * Math.PI / 180);
+                }
+                
+                // Apply shadow
+                if (element.shadowBlur > 0) {
+                    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                    this.ctx.shadowBlur = element.shadowBlur;
+                    this.ctx.shadowOffsetX = 2;
+                    this.ctx.shadowOffsetY = 2;
+                }
+                
+                // Set fill style
+                if (element.gradient && element.gradientColor2) {
+                    const gradient = this.ctx.createLinearGradient(-element.size/2, -element.size/2, element.size/2, element.size/2);
+                    gradient.addColorStop(0, element.fillColor);
+                    gradient.addColorStop(1, element.gradientColor2);
+                    this.ctx.fillStyle = gradient;
+                } else {
+                    this.ctx.fillStyle = element.fillColor;
+                }
+                
+                this.ctx.strokeStyle = element.strokeColor;
+                this.ctx.lineWidth = element.strokeWidth;
+                
+                // Draw shape
+                switch (element.type) {
+                    case 'circle':
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, element.size / 2, 0, 2 * Math.PI);
+                        if (element.fillColor !== 'transparent') this.ctx.fill();
+                        if (element.strokeWidth > 0) this.ctx.stroke();
+                        break;
+                        
+                    case 'square':
+                        this.ctx.fillRect(-element.size/2, -element.size/2, element.size, element.size);
+                        if (element.strokeWidth > 0) {
+                            this.ctx.strokeRect(-element.size/2, -element.size/2, element.size, element.size);
+                        }
+                        break;
+                        
+                    case 'triangle':
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(0, -element.size/2);
+                        this.ctx.lineTo(-element.size/2, element.size/2);
+                        this.ctx.lineTo(element.size/2, element.size/2);
+                        this.ctx.closePath();
+                        if (element.fillColor !== 'transparent') this.ctx.fill();
+                        if (element.strokeWidth > 0) this.ctx.stroke();
+                        break;
+                        
+                    case 'heart':
+                        this.drawHeart(element.size);
+                        break;
+                        
+                    case 'star':
+                        this.drawStar(element.size);
+                        break;
+                        
+                    case 'oval':
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(0, 0, element.size/2, element.size/3, 0, 0, 2 * Math.PI);
+                        if (element.fillColor !== 'transparent') this.ctx.fill();
+                        if (element.strokeWidth > 0) this.ctx.stroke();
+                        break;
+                        
+                    case 'line':
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-element.size/2, 0);
+                        this.ctx.lineTo(element.size/2, 0);
+                        this.ctx.stroke();
+                        break;
+                        
+                    case 'arc':
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 0, element.size/2, element.startAngle, element.endAngle);
+                        if (element.strokeWidth > 0) this.ctx.stroke();
+                        break;
+                }
+                
+                this.ctx.restore();
+            }
+
+            drawHeart(size) {
+                this.ctx.beginPath();
+                const x = 0, y = 0;
+                this.ctx.moveTo(x, y + size/6);
+                this.ctx.bezierCurveTo(x, y - size/6, x - size/2, y - size/6, x - size/2, y + size/12);
+                this.ctx.bezierCurveTo(x - size/2, y + size/3, x, y + size/2, x, y + size/2);
+                this.ctx.bezierCurveTo(x, y + size/2, x + size/2, y + size/3, x + size/2, y + size/12);
+                this.ctx.bezierCurveTo(x + size/2, y - size/6, x, y - size/6, x, y + size/6);
+                this.ctx.fill();
+                if (this.ctx.lineWidth > 0) this.ctx.stroke();
+            }
+
+            drawStar(size) {
+                const spikes = 5;
+                const outerRadius = size / 2;
+                const innerRadius = outerRadius * 0.4;
+                
+                this.ctx.beginPath();
+                for (let i = 0; i < spikes * 2; i++) {
+                    const angle = (i * Math.PI) / spikes;
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const x = Math.cos(angle - Math.PI/2) * radius;
+                    const y = Math.sin(angle - Math.PI/2) * radius;
+                    
+                    if (i === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+                if (this.ctx.lineWidth > 0) this.ctx.stroke();
+            }
+
+            drawSelectionOutline(element) {
+                this.ctx.save();
+                this.ctx.strokeStyle = '#007bff';
+                this.ctx.lineWidth = 2;
+                this.ctx.setLineDash([5, 5]);
+                
+                this.ctx.translate(element.x, element.y);
+                if (element.rotation) {
+                    this.ctx.rotate(element.rotation * Math.PI / 180);
+                }
+                
+                const size = element.size + 10;
+                this.ctx.strokeRect(-size/2, -size/2, size, size);
+                
+                this.ctx.restore();
+            }
+
+            addLayer() {
+                const newLayer = {
+                    id: this.layers.length,
+                    name: `Layer ${this.layers.length + 1}`,
+                    elements: [],
+                    visible: true
+                };
+                
+                this.layers.push(newLayer);
+                this.currentLayer = newLayer.id;
+                this.updateLayersList();
+                this.updateUI();
+            }
+
+            deleteLayer() {
+                if (this.layers.length <= 1) {
+                    this.showToast('Cannot delete the last layer!', 'error');
+                    return;
+                }
+                
+                // Remove elements from this layer
+                const layerElements = this.layers[this.currentLayer].elements;
+                layerElements.forEach(element => {
+                    this.elements = this.elements.filter(e => e.id !== element.id);
+                });
+                
+                this.layers.splice(this.currentLayer, 1);
+                this.currentLayer = Math.max(0, this.currentLayer - 1);
+                
+                // Reindex layers
+                this.layers.forEach((layer, index) => {
+                    layer.id = index;
+                });
+                
+                this.updateLayersList();
+                this.draw();
+                this.saveState();
+                this.updateUI();
+            }
+
+            updateLayersList() {
+                const layersList = document.getElementById('layersList');
+                layersList.innerHTML = '';
+                
+                this.layers.forEach((layer, index) => {
+                    const layerItem = document.createElement('div');
+                    layerItem.className = `layer-item ${index === this.currentLayer ? 'active' : ''}`;
+                    layerItem.dataset.layer = index;
+                    
+                    const visibilityBtn = document.createElement('button');
+                    visibilityBtn.className = 'btn-secondary';
+                    visibilityBtn.style.padding = '5px';
+                    visibilityBtn.textContent = layer.visible ? '👁️' : '🙈';
+                    visibilityBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.toggleLayerVisibility(index);
+                    };
+                    
+                    const layerSpan = document.createElement('span');
+                    layerSpan.textContent = layer.name;
+                    
+                    const btnContainer = document.createElement('div');
+                    btnContainer.appendChild(visibilityBtn);
+                    
+                    layerItem.appendChild(layerSpan);
+                    layerItem.appendChild(btnContainer);
+                    
+                    layerItem.addEventListener('click', (e) => {
+                        if (e.target !== visibilityBtn) {
+                            this.currentLayer = index;
+                            this.updateLayersList();
+                        }
+                    });
+                    
+                    layersList.appendChild(layerItem);
+                });
+                
+                document.getElementById('layerCount').textContent = this.layers.length;
+            }
+
+            toggleLayerVisibility(layerIndex) {
+                this.layers[layerIndex].visible = !this.layers[layerIndex].visible;
+                this.updateLayersList();
+                this.draw();
+            }
+
+            addGlowEffect() {
+                if (!this.selectedElement) {
+                    this.showToast('Please select an element first!', 'warning');
+                    return;
+                }
+                
+                this.selectedElement.glow = true;
+                this.selectedElement.glowColor = this.selectedElement.fillColor;
+                this.selectedElement.glowBlur = 15;
+                this.draw();
+                this.showToast('Glow effect added!', 'success');
+            }
+
+            addShadowEffect() {
+                if (!this.selectedElement) {
+                    this.showToast('Please select an element first!', 'warning');
+                    return;
+                }
+                
+                this.selectedElement.shadowBlur = 10;
+                this.selectedElement.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                this.selectedElement.shadowOffsetX = 5;
+                this.selectedElement.shadowOffsetY = 5;
+                this.draw();
+                this.showToast('Shadow effect added!', 'success');
+            }
+
+            startBounceAnimation() {
+                this.stopAnimation();
+                let startTime = null;
+                const originalY = {};
+                
+                this.elements.forEach(element => {
+                    originalY[element.id] = element.y;
+                });
+                
+                const animate = (timestamp) => {
+                    if (!startTime) startTime = timestamp;
+                    const elapsed = timestamp - startTime;
+                    const progress = (elapsed % 2000) / 2000;
+                    const bounce = Math.abs(Math.sin(progress * Math.PI * 2)) * 20;
+                    
+                    this.elements.forEach(element => {
+                        element.y = originalY[element.id] + bounce;
+                    });
+                    
+                    this.draw();
+                    this.animationId = requestAnimationFrame(animate);
+                };
+                
+                this.animationId = requestAnimationFrame(animate);
+                this.showToast('Bounce animation started!', 'success');
+            }
+
+            startPulseAnimation() {
+                this.stopAnimation();
+                let startTime = null;
+                const originalSize = {};
+                
+                this.elements.forEach(element => {
+                    originalSize[element.id] = element.size;
+                });
+                
+                const animate = (timestamp) => {
+                    if (!startTime) startTime = timestamp;
+                    const elapsed = timestamp - startTime;
+                    const progress = (elapsed % 1500) / 1500;
+                    const pulse = 1 + Math.sin(progress * Math.PI * 2) * 0.1;
+                    
+                    this.elements.forEach(element => {
+                        element.size = originalSize[element.id] * pulse;
+                    });
+                    
+                    this.draw();
+                    this.animationId = requestAnimationFrame(animate);
+                };
+                
+                this.animationId = requestAnimationFrame(animate);
+                this.showToast('Pulse animation started!', 'success');
+            }
+
+            stopAnimation() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+
+            toggleAnimationPreview() {
+                const preview = document.getElementById('animationPreview');
+                preview.classList.toggle('active');
+                
+                if (preview.classList.contains('active')) {
+                    this.renderAnimationPreview();
+                } else {
+                    this.stopAnimation();
+                }
+            }
+
+            renderAnimationPreview() {
+                const scale = 0.25;
+                this.previewCtx.clearRect(0, 0, this.previewCanvas.width, this.previewCanvas.height);
+                this.previewCtx.save();
+                this.previewCtx.scale(scale, scale);
+                
+                // Render current emoji to preview canvas
+                for (const layer of this.layers) {
+                    if (!layer.visible) continue;
+                    
+                    for (const element of layer.elements) {
+                        this.drawElementToContext(this.previewCtx, element);
+                    }
+                }
+                
+                this.previewCtx.restore();
+            }
+
+            drawElementToContext(ctx, element) {
+                ctx.save();
+                ctx.globalAlpha = element.opacity;
+                ctx.translate(element.x, element.y);
+                if (element.rotation) {
+                    ctx.rotate(element.rotation * Math.PI / 180);
+                }
+                
+                if (element.gradient && element.gradientColor2) {
+                    const gradient = ctx.createLinearGradient(-element.size/2, -element.size/2, element.size/2, element.size/2);
+                    gradient.addColorStop(0, element.fillColor);
+                    gradient.addColorStop(1, element.gradientColor2);
+                    ctx.fillStyle = gradient;
+                } else {
+                    ctx.fillStyle = element.fillColor;
+                }
+                
+                ctx.strokeStyle = element.strokeColor;
+                ctx.lineWidth = element.strokeWidth;
+                
+                switch (element.type) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, element.size / 2, 0, 2 * Math.PI);
+                        if (element.fillColor !== 'transparent') ctx.fill();
+                        if (element.strokeWidth > 0) ctx.stroke();
+                        break;
+                    case 'square':
+                        ctx.fillRect(-element.size/2, -element.size/2, element.size, element.size);
+                        if (element.strokeWidth > 0) {
+                            ctx.strokeRect(-element.size/2, -element.size/2, element.size, element.size);
+                        }
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -element.size/2);
+                        ctx.lineTo(-element.size/2, element.size/2);
+                        ctx.lineTo(element.size/2, element.size/2);
+                        ctx.closePath();
+                        if (element.fillColor !== 'transparent') ctx.fill();
+                        if (element.strokeWidth > 0) ctx.stroke();
+                        break;
+                    case 'heart':
+                        this.drawHeartForPreview(ctx, element.size);
+                        break;
+                    case 'star':
+                        this.drawStarForPreview(ctx, element.size);
+                        break;
+                    case 'oval':
+                        ctx.beginPath();
+                        ctx.ellipse(0, 0, element.size/2, element.size/3, 0, 0, 2 * Math.PI);
+                        if (element.fillColor !== 'transparent') ctx.fill();
+                        if (element.strokeWidth > 0) ctx.stroke();
+                        break;
+                    case 'line':
+                        ctx.beginPath();
+                        ctx.moveTo(-element.size/2, 0);
+                        ctx.lineTo(element.size/2, 0);
+                        ctx.stroke();
+                        break;
+                    case 'arc':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, element.size/2, element.startAngle, element.endAngle);
+                        if (element.strokeWidth > 0) ctx.stroke();
+                        break;
+                }
+                
+                ctx.restore();
+            }
+
+            drawHeartForPreview(ctx, size) {
+                ctx.beginPath();
+                const x = 0, y = 0;
+                ctx.moveTo(x, y + size/6);
+                ctx.bezierCurveTo(x, y - size/6, x - size/2, y - size/6, x - size/2, y + size/12);
+                ctx.bezierCurveTo(x - size/2, y + size/3, x, y + size/2, x, y + size/2);
+                ctx.bezierCurveTo(x, y + size/2, x + size/2, y + size/3, x + size/2, y + size/12);
+                ctx.bezierCurveTo(x + size/2, y - size/6, x, y - size/6, x, y + size/6);
+                ctx.fill();
+                if (ctx.lineWidth > 0) ctx.stroke();
+            }
+
+            drawStarForPreview(ctx, size) {
+                const spikes = 5;
+                const outerRadius = size / 2;
+                const innerRadius = outerRadius * 0.4;
+                
+                ctx.beginPath();
+                for (let i = 0; i < spikes * 2; i++) {
+                    const angle = (i * Math.PI) / spikes;
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const x = Math.cos(angle - Math.PI/2) * radius;
+                    const y = Math.sin(angle - Math.PI/2) * radius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.fill();
+                if (ctx.lineWidth > 0) ctx.stroke();
+            }
+
+            randomize() {
+                this.clearCanvas();
+                
+                const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+                const shapes = ['circle', 'square', 'triangle', 'heart', 'star'];
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                
+                // Random base
+                const base = {
+                    id: Date.now(),
+                    type: shapes[Math.floor(Math.random() * shapes.length)],
+                    x: centerX,
+                    y: centerY,
+                    size: 80 + Math.random() * 40,
+                    fillColor: colors[Math.floor(Math.random() * colors.length)],
+                    strokeColor: '#000000',
+                    strokeWidth: 2,
+                    opacity: 0.8 + Math.random() * 0.2,
+                    rotation: Math.random() * 360,
+                    layer: this.currentLayer
+                };
+                
+                this.layers[this.currentLayer].elements.push(base);
+                this.elements.push(base);
+                
+                // Random features
+                const eyeTypes = ['eyes-normal', 'eyes-wink', 'eyes-closed', 'eyes-heart', 'eyes-angry', 'eyes-surprised'];
+                const mouthTypes = ['mouth-smile', 'mouth-frown', 'mouth-open', 'mouth-laugh', 'mouth-kiss', 'mouth-neutral'];
+                
+                const eyeType = eyeTypes[Math.floor(Math.random() * eyeTypes.length)];
+                const mouthType = mouthTypes[Math.floor(Math.random() * mouthTypes.length)];
+                
+                this.addFeature(eyeType);
+                this.addFeature(mouthType);
+                
+                this.draw();
+                this.saveState();
+                this.updateUI();
+            }
+
+            undo() {
+                if (this.historyStep > 0) {
+                    this.historyStep--;
+                    this.restoreState();
+                }
+            }
+
+            redo() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.historyStep++;
+                    this.restoreState();
+                }
+            }
+
+            saveState() {
+                if (this.historyStep < this.history.length - 1) {
+                    this.history = this.history.slice(0, this.historyStep + 1);
+                }
+
+                const state = {
+                    layers: JSON.parse(JSON.stringify(this.layers)),
+                    currentLayer: this.currentLayer
+                };
+
+                this.history.push(state);
+                this.historyStep = this.history.length - 1;
+            }
+
+            restoreState() {
+                const state = this.history[this.historyStep];
+                this.layers = JSON.parse(JSON.stringify(state.layers));
+                this.currentLayer = state.currentLayer;
+                
+                // Rebuild elements array from layers
+                this.elements = [];
+                this.layers.forEach(layer => {
+                    layer.elements.forEach(element => {
+                        this.elements.push(element);
+                    });
+                });
+                
+                this.selectedElement = null;
+                this.updateLayersList();
+                this.updateUI();
+                this.draw();
+            }
+
+            clearCanvas() {
+                this.layers.forEach(layer => {
+                    layer.elements = [];
+                });
+                this.elements = [];
+                this.selectedElement = null;
+                this.draw();
+                this.saveState();
+                this.updateUI();
+                this.showToast('Canvas cleared!', 'success');
+            }
+
+            exportPNG() {
+                const dataURL = this.canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'emoji-creation.png';
+                link.href = dataURL;
+                link.click();
+                this.showToast('PNG exported successfully!', 'success');
+            }
+
+            exportSVG() {
+                let svgContent = `<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">\n`;
+                
+                // White background
+                svgContent += `  <rect width="400" height="400" fill="#FFFFFF" />\n`;
+                
+                // Add all elements
+                this.elements.forEach(element => {
+                    const transform = `translate(${element.x} ${element.y}) rotate(${element.rotation})`;
+                    let elementSvg = '';
+                    
+                    switch (element.type) {
+                        case 'circle':
+                            elementSvg = `  <circle cx="0" cy="0" r="${element.size/2}" fill="${element.fillColor}" stroke="${element.strokeColor}" stroke-width="${element.strokeWidth}" opacity="${element.opacity}" transform="${transform}" />`;
+                            break;
+                        case 'square':
+                            elementSvg = `  <rect x="${-element.size/2}" y="${-element.size/2}" width="${element.size}" height="${element.size}" fill="${element.fillColor}" stroke="${element.strokeColor}" stroke-width="${element.strokeWidth}" opacity="${element.opacity}" transform="${transform}" />`;
+                            break;
+                        case 'triangle':
+                            const points = `0,${-element.size/2} ${-element.size/2},${element.size/2} ${element.size/2},${element.size/2}`;
+                            elementSvg = `  <polygon points="${points}" fill="${element.fillColor}" stroke="${element.strokeColor}" stroke-width="${element.strokeWidth}" opacity="${element.opacity}" transform="${transform}" />`;
+                            break;
+                        case 'heart':
+                        case 'star':
+                        case 'oval':
+                        case 'line':
+                        case 'arc':
+                        default:
+                            // Use a placeholder for complex shapes
+                            elementSvg = `  <!-- Unsupported element: ${element.type} -->`;
+                    }
+                    
+                    svgContent += elementSvg + '\n';
+                });
+                
+                svgContent += '</svg>';
+                
+                const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+                const link = document.createElement('a');
+                link.download = 'emoji-creation.svg';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                this.showToast('SVG exported successfully!', 'success');
+            }
+
+            saveProject() {
+                const project = {
+                    layers: this.layers,
+                    currentLayer: this.currentLayer
+                };
+                
+                const json = JSON.stringify(project);
+                const blob = new Blob([json], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.download = 'emoji-project.json';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                this.showToast('Project saved!', 'success');
+            }
+
+            handleFileLoad(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const project = JSON.parse(event.target.result);
+                        this.layers = project.layers;
+                        this.currentLayer = project.currentLayer;
+                        
+                        // Rebuild elements array
+                        this.elements = [];
+                        this.layers.forEach(layer => {
+                            layer.elements.forEach(element => {
+                                this.elements.push(element);
+                            });
+                        });
+                        
+                        this.selectedElement = null;
+                        this.updateLayersList();
+                        this.updateUI();
+                        this.draw();
+                        this.saveState();
+                        this.showToast('Project loaded successfully!', 'success');
+                    } catch (error) {
+                        this.showToast('Invalid project file!', 'error');
+                        console.error('Error loading project:', error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            showToast(message, type) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.className = 'toast show';
+                
+                if (type === 'success') {
+                    toast.style.backgroundColor = '#28a745';
+                } else if (type === 'warning') {
+                    toast.style.backgroundColor = '#ffc107';
+                    toast.style.color = '#333';
+                } else if (type === 'error') {
+                    toast.style.backgroundColor = '#dc3545';
+                }
+                
+                setTimeout(() => {
+                    toast.className = 'toast';
+                }, 3000);
+            }
+
+            updateUI() {
+                document.getElementById('elementCount').textContent = this.elements.length;
+            }
+        }
+
+        // Initialize the workshop when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.workshop = new EmojiWorkshop();
+            
+            // Set the circle as the default active shape
+            document.querySelector('.shape-btn[data-shape="circle"]').classList.add('active');
+        });
+    </script>
+</body>
+</html>

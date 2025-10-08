@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji Builder Workshop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr 280px;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .panel:hover {
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .tool-btn.active {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .canvas-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #canvas {
+            border: 3px solid #ddd;
+            border-radius: 20px;
+            cursor: crosshair;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        #canvas:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .layer-panel h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .layer-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .layer-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .layer-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-color: #667eea;
+        }
+
+        .layer-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #ddd;
+        }
+
+        .layer-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 5px;
+        }
+
+        .layer-btn {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .layer-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .component-item {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .component-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .component-item:hover::before {
+            left: 100%;
+        }
+
+        .controls-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .controls-group h4 {
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .control-row label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            min-width: 50px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .export-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-btn.primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .export-btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .animation-controls {
+            display: none;
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
+        }
+
+        .animation-controls.show {
+            display: block;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .preset-item {
+            aspect-ratio: 1;
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .preset-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: #f0f0f0;
+        }
+
+        .history-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            25% { transform: translateY(-5px); }
+            50% { transform: translateY(0px); }
+            75% { transform: translateY(-2px); }
+        }
+
+        .floating { animation: float 3s ease-in-out infinite; }
+        .pulsing { animation: pulse 2s ease-in-out infinite; }
+        .bouncing { animation: bounce 1.5s ease-in-out infinite; }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .panel {
+                order: 2;
+            }
+            
+            .header {
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel header">
+            <h1>🎨 Emoji Builder Workshop</h1>
+            <p>Professional Creative Tool for Custom Emoji Design</p>
+        </div>
+
+        <!-- Left Panel: Components & Presets -->
+        <div class="panel">
+            <h3>🎭 Components Library</h3>
+            
+            <div class="preset-grid">
+                <div class="preset-item" data-preset="happy">😊</div>
+                <div class="preset-item" data-preset="wink">😉</div>
+                <div class="preset-item" data-preset="cool">😎</div>
+                <div class="preset-item" data-preset="love">😍</div>
+                <div class="preset-item" data-preset="laugh">😂</div>
+                <div class="preset-item" data-preset="thinking">🤔</div>
+            </div>
+
+            <h4>👁️ Eyes</h4>
+            <div class="component-grid">
+                <div class="component-item" data-component="eyes" data-type="normal">👀</div>
+                <div class="component-item" data-component="eyes" data-type="wink">😉</div>
+                <div class="component-item" data-component="eyes" data-type="closed">😌</div>
+                <div class="component-item" data-component="eyes" data-type="heart">😍</div>
+                <div class="component-item" data-component="eyes" data-type="star">⭐</div>
+                <div class="component-item" data-component="eyes" data-type="tired">😴</div>
+                <div class="component-item" data-component="eyes" data-type="angry">😠</div>
+                <div class="component-item" data-component="eyes" data-type="surprised">😲</div>
+            </div>
+
+            <h4>👄 Mouths</h4>
+            <div class="component-grid">
+                <div class="component-item" data-component="mouth" data-type="smile">😊</div>
+                <div class="component-item" data-component="mouth" data-type="laugh">😂</div>
+                <div class="component-item" data-component="mouth" data-type="kiss">😘</div>
+                <div class="component-item" data-component="mouth" data-type="neutral">😐</div>
+                <div class="component-item" data-component="mouth" data-type="sad">☹️</div>
+                <div class="component-item" data-component="mouth" data-type="open">😮</div>
+                <div class="component-item" data-component="mouth" data-type="tongue">😛</div>
+                <div class="component-item" data-component="mouth" data-type="frown">🙁</div>
+            </div>
+
+            <h4>🌟 Accessories</h4>
+            <div class="component-grid">
+                <div class="component-item" data-component="accessory" data-type="glasses">🤓</div>
+                <div class="component-item" data-component="accessory" data-type="sunglasses">😎</div>
+                <div class="component-item" data-component="accessory" data-type="hat">🎩</div>
+                <div class="component-item" data-component="accessory" data-type="crown">👑</div>
+                <div class="component-item" data-component="accessory" data-type="halo">😇</div>
+                <div class="component-item" data-component="accessory" data-type="horns">😈</div>
+                <div class="component-item" data-component="accessory" data-type="bow">🎀</div>
+                <div class="component-item" data-component="accessory" data-type="headband">👸</div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Canvas & Tools -->
+        <div class="panel canvas-container">
+            <div class="toolbar">
+                <button class="tool-btn active" data-tool="select">✋ Select</button>
+                <button class="tool-btn" data-tool="move">📐 Move</button>
+                <button class="tool-btn" data-tool="rotate">🔄 Rotate</button>
+                <button class="tool-btn" data-tool="scale">📏 Scale</button>
+                <button class="tool-btn" data-tool="delete">🗑️ Delete</button>
+                <button class="tool-btn" data-tool="duplicate">📋 Clone</button>
+                <button class="tool-btn" data-tool="animate">✨ Animate</button>
+                <button class="tool-btn" data-tool="clear">🧹 Clear</button>
+            </div>
+
+            <canvas id="canvas" width="400" height="400"></canvas>
+
+            <div class="controls-group animation-controls" id="animationControls">
+                <h4>✨ Animation Controls</h4>
+                <div class="control-row">
+                    <button class="tool-btn" onclick="emojiBuilder.addAnimation('float')">🎈 Float</button>
+                    <button class="tool-btn" onclick="emojiBuilder.addAnimation('pulse')">💗 Pulse</button>
+                    <button class="tool-btn" onclick="emojiBuilder.addAnimation('bounce')">⚡ Bounce</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Layers & Controls -->
+        <div class="panel">
+            <div class="layer-panel">
+                <h3>🎭 Layers</h3>
+                <div id="layerList"></div>
+                
+                <div class="controls-group">
+                    <h4>🎨 Appearance</h4>
+                    <div class="control-row">
+                        <label>Size</label>
+                        <input type="range" id="sizeSlider" min="10" max="100" value="50">
+                        <span id="sizeValue">50</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Opacity</label>
+                        <input type="range" id="opacitySlider" min="0" max="100" value="100">
+                        <span id="opacityValue">100%</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Color</label>
+                        <input type="color" id="colorPicker" value="#ffdd44">
+                    </div>
+                    <div class="control-row">
+                        <label>Rotation</label>
+                        <input type="range" id="rotationSlider" min="0" max="360" value="0">
+                        <span id="rotationValue">0°</span>
+                    </div>
+                </div>
+
+                <div class="controls-group">
+                    <h4>📐 Position</h4>
+                    <div class="control-row">
+                        <label>X</label>
+                        <input type="range" id="xSlider" min="0" max="400" value="200">
+                        <span id="xValue">200</span>
+                    </div>
+                    <div class="control-row">
+                        <label>Y</label>
+                        <input type="range" id="ySlider" min="0" max="400" value="200">
+                        <span id="yValue">200</span>
+                    </div>
+                </div>
+
+                <div class="export-section">
+                    <h4>💾 Export Options</h4>
+                    <button class="export-btn primary" onclick="emojiBuilder.exportAsPNG()">📸 Export PNG</button>
+                    <button class="export-btn primary" onclick="emojiBuilder.exportAsSVG()">🎨 Export SVG</button>
+                    <button class="export-btn secondary" onclick="emojiBuilder.saveProject()">💾 Save Project</button>
+                    <button class="export-btn secondary" onclick="emojiBuilder.loadProject()">📁 Load Project</button>
+                    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="emojiBuilder.handleFileLoad(event)">
+                </div>
+
+                <div class="controls-group">
+                    <h4>📚 History</h4>
+                    <div id="historyList"></div>
+                    <button class="tool-btn" onclick="emojiBuilder.clearHistory()" style="width: 100%; margin-top: 10px;">🧹 Clear History</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EmojiBuilder {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.layers = [];
+                this.selectedLayer = null;
+                this.currentTool = 'select';
+                this.isDragging = false;
+                this.lastPos = { x: 0, y: 0 };
+                this.history = [];
+                this.maxHistory = 10;
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.setupControls();
+                this.loadPresets();
+                this.render();
+                this.saveState();
+            }
+
+            setupEventListeners() {
+                // Canvas events
+                this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                this.canvas.addEventListener('wheel', this.handleWheel.bind(this));
+
+                // Tool buttons
+                document.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (e.target.dataset.tool) {
+                            this.setTool(e.target.dataset.tool);
+                        }
+                    });
+                });
+
+                // Component selection
+                document.querySelectorAll('.component-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const component = e.target.dataset.component;
+                        const type = e.target.dataset.type;
+                        this.addComponent(component, type);
+                    });
+                });
+
+                // Preset selection
+                document.querySelectorAll('.preset-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const preset = e.target.dataset.preset;
+                        this.loadPreset(preset);
+                    });
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', this.handleKeyDown.bind(this));
+            }
+
+            setupControls() {
+                const controls = {
+                    sizeSlider: (value) => this.updateSelectedLayer('size', value),
+                    opacitySlider: (value) => this.updateSelectedLayer('opacity', value / 100),
+                    colorPicker: (value) => this.updateSelectedLayer('color', value),
+                    rotationSlider: (value) => this.updateSelectedLayer('rotation', value * Math.PI / 180),
+                    xSlider: (value) => this.updateSelectedLayer('x', value),
+                    ySlider: (value) => this.updateSelectedLayer('y', value)
+                };
+
+                Object.keys(controls).forEach(id => {
+                    const element = document.getElementById(id);
+                    element.addEventListener('input', (e) => {
+                        controls[id](e.target.value);
+                        this.updateControlDisplay(id, e.target.value);
+                    });
+                });
+            }
+
+            updateControlDisplay(controlId, value) {
+                const displays = {
+                    sizeSlider: () => document.getElementById('sizeValue').textContent = value,
+                    opacitySlider: () => document.getElementById('opacityValue').textContent = value + '%',
+                    rotationSlider: () => document.getElementById('rotationValue').textContent = value + '°',
+                    xSlider: () => document.getElementById('xValue').textContent = value,
+                    ySlider: () => document.getElementById('yValue').textContent = value
+                };
+
+                if (displays[controlId]) {
+                    displays[controlId]();
+                }
+            }
+
+            setTool(tool) {
+                this.currentTool = tool;
+                document.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+
+                // Show/hide animation controls
+                const animControls = document.getElementById('animationControls');
+                if (tool === 'animate') {
+                    animControls.classList.add('show');
+                } else {
+                    animControls.classList.remove('show');
+                }
+
+                // Handle specific tools
+                switch (tool) {
+                    case 'clear':
+                        this.clearCanvas();
+                        break;
+                    case 'delete':
+                        if (this.selectedLayer) {
+                            this.deleteLayer(this.selectedLayer);
+                        }
+                        break;
+                    case 'duplicate':
+                        if (this.selectedLayer) {
+                            this.duplicateLayer(this.selectedLayer);
+                        }
+                        break;
+                }
+            }
+
+            addComponent(component, type) {
+                const layer = {
+                    id: Date.now() + Math.random(),
+                    component,
+                    type,
+                    x: 200,
+                    y: 200,
+                    size: 50,
+                    color: '#ffdd44',
+                    opacity: 1,
+                    rotation: 0,
+                    animation: null
+                };
+
+                this.layers.push(layer);
+                this.selectedLayer = layer;
+                this.updateLayerList();
+                this.updateControls();
+                this.render();
+                this.saveState();
+            }
+
+            updateSelectedLayer(property, value) {
+                if (this.selectedLayer) {
+                    if (property === 'rotation') {
+                        this.selectedLayer[property] = parseFloat(value);
+                    } else if (property === 'opacity') {
+                        this.selectedLayer[property] = parseFloat(value);
+                    } else {
+                        this.selectedLayer[property] = value;
+                    }
+                    this.render();
+                    this.updateLayerList();
+                }
+            }
+
+            updateLayerList() {
+                const layerList = document.getElementById('layerList');
+                layerList.innerHTML = '';
+
+                this.layers.forEach((layer, index) => {
+                    const item = document.createElement('div');
+                    item.className = `layer-item ${layer === this.selectedLayer ? 'active' : ''}`;
+                    
+                    item.innerHTML = `
+                        <div class="layer-preview" style="background: ${layer.color}"></div>
+                        <span>${layer.component} - ${layer.type}</span>
+                        <div class="layer-controls">
+                            <button class="layer-btn" onclick="emojiBuilder.moveLayerUp(${index})">↑</button>
+                            <button class="layer-btn" onclick="emojiBuilder.moveLayerDown(${index})">↓</button>
+                            <button class="layer-btn" onclick="emojiBuilder.deleteLayer(${index})">×</button>
+                        </div>
+                    `;
+                    
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('layer-btn')) {
+                            this.selectLayer(layer);
+                        }
+                    });
+                    
+                    layerList.appendChild(item);
+                });
+            }
+
+            selectLayer(layer) {
+                this.selectedLayer = layer;
+                this.updateLayerList();
+                this.updateControls();
+                this.render();
+            }
+
+            updateControls() {
+                if (this.selectedLayer) {
+                    document.getElementById('sizeSlider').value = this.selectedLayer.size;
+                    document.getElementById('opacitySlider').value = this.selectedLayer.opacity * 100;
+                    document.getElementById('colorPicker').value = this.selectedLayer.color;
+                    document.getElementById('rotationSlider').value = this.selectedLayer.rotation * 180 / Math.PI;
+                    document.getElementById('xSlider').value = this.selectedLayer.x;
+                    document.getElementById('ySlider').value = this.selectedLayer.y;
+
+                    // Update display values
+                    this.updateControlDisplay('sizeSlider', this.selectedLayer.size);
+                    this.updateControlDisplay('opacitySlider', this.selectedLayer.opacity * 100);
+                    this.updateControlDisplay('rotationSlider', Math.round(this.selectedLayer.rotation * 180 / Math.PI));
+                    this.updateControlDisplay('xSlider', this.selectedLayer.x);
+                    this.updateControlDisplay('ySlider', this.selectedLayer.y);
+                }
+            }
+
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw background
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Draw layers
+                this.layers.forEach(layer => {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = layer.opacity;
+                    this.ctx.translate(layer.x, layer.y);
+                    this.ctx.rotate(layer.rotation);
+                    this.ctx.scale(layer.size / 50, layer.size / 50);
+
+                    this.drawComponent(layer);
+
+                    // Draw selection indicator
+                    if (layer === this.selectedLayer) {
+                        this.ctx.strokeStyle = '#667eea';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.setLineDash([5, 5]);
+                        this.ctx.strokeRect(-30, -30, 60, 60);
+                        this.ctx.setLineDash([]);
+                    }
+
+                    this.ctx.restore();
+                });
+            }
+
+            drawComponent(layer) {
+                const { component, type, color } = layer;
+                this.ctx.fillStyle = color;
+                this.ctx.strokeStyle = '#333';
+                this.ctx.lineWidth = 2;
+
+                switch (component) {
+                    case 'eyes':
+                        this.drawEyes(type);
+                        break;
+                    case 'mouth':
+                        this.drawMouth(type);
+                        break;
+                    case 'accessory':
+                        this.drawAccessory(type);
+                        break;
+                    default:
+                        this.drawCircle();
+                }
+            }
+
+            drawEyes(type) {
+                switch (type) {
+                    case 'normal':
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.fillRect(-20, -10, 15, 10);
+                        this.ctx.fillRect(5, -10, 15, 10);
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.fillRect(-15, -8, 5, 6);
+                        this.ctx.fillRect(10, -8, 5, 6);
+                        break;
+                    case 'wink':
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.fillRect(-20, -10, 15, 10);
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.fillRect(-15, -8, 5, 6);
+                        // Winking eye
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(12, -5, 8, 0.2, Math.PI - 0.2);
+                        this.ctx.stroke();
+                        break;
+                    case 'closed':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(-12, -5, 8, 0.2, Math.PI - 0.2);
+                        this.ctx.stroke();
+                        this.ctx.beginPath();
+                        this.ctx.arc(12, -5, 8, 0.2, Math.PI - 0.2);
+                        this.ctx.stroke();
+                        break;
+                    case 'heart':
+                        this.ctx.fillStyle = '#ff69b4';
+                        this.drawHeart(-12, -5, 6);
+                        this.drawHeart(12, -5, 6);
+                        break;
+                    case 'star':
+                        this.ctx.fillStyle = '#ffd700';
+                        this.drawStar(-12, -5, 6);
+                        this.drawStar(12, -5, 6);
+                        break;
+                    case 'tired':
+                        this.ctx.strokeStyle = '#666';
+                        this.ctx.lineWidth = 2;
+                        for (let i = 0; i < 3; i++) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(-20 + i * 3, -15 + i * 2);
+                            this.ctx.lineTo(-15 + i * 3, -10 + i * 2);
+                            this.ctx.stroke();
+                        }
+                        for (let i = 0; i < 3; i++) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(5 + i * 3, -15 + i * 2);
+                            this.ctx.lineTo(10 + i * 3, -10 + i * 2);
+                            this.ctx.stroke();
+                        }
+                        break;
+                    case 'angry':
+                        this.ctx.fillStyle = '#ff4444';
+                        this.ctx.fillRect(-20, -10, 15, 10);
+                        this.ctx.fillRect(5, -10, 15, 10);
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.fillRect(-15, -8, 5, 6);
+                        this.ctx.fillRect(10, -8, 5, 6);
+                        // Angry eyebrows
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 4;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-25, -15);
+                        this.ctx.lineTo(-10, -12);
+                        this.ctx.stroke();
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(10, -12);
+                        this.ctx.lineTo(25, -15);
+                        this.ctx.stroke();
+                        break;
+                    case 'surprised':
+                        this.ctx.fillStyle = '#ffffff';
+                        this.ctx.beginPath();
+                        this.ctx.arc(-12, -5, 10, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        this.ctx.beginPath();
+                        this.ctx.arc(12, -5, 10, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.beginPath();
+                        this.ctx.arc(-12, -5, 4, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.beginPath();
+                        this.ctx.arc(12, -5, 4, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                }
+            }
+
+            drawMouth(type) {
+                switch (type) {
+                    case 'smile':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 5, 15, 0.2, Math.PI - 0.2);
+                        this.ctx.stroke();
+                        break;
+                    case 'laugh':
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(0, 10, 20, 12, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.fillStyle = '#ffffff';
+                        // Teeth
+                        for (let i = -3; i <= 3; i++) {
+                            this.ctx.fillRect(i * 4 - 1, 5, 2, 8);
+                        }
+                        break;
+                    case 'kiss':
+                        this.ctx.fillStyle = '#ff69b4';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(0, 10, 8, 6, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.stroke();
+                        break;
+                    case 'neutral':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-10, 10);
+                        this.ctx.lineTo(10, 10);
+                        this.ctx.stroke();
+                        break;
+                    case 'sad':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 20, 15, Math.PI + 0.2, 2 * Math.PI - 0.2);
+                        this.ctx.stroke();
+                        break;
+                    case 'open':
+                        this.ctx.fillStyle = '#333';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(0, 10, 8, 12, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'tongue':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 5, 12, 0.2, Math.PI - 0.2);
+                        this.ctx.stroke();
+                        // Tongue
+                        this.ctx.fillStyle = '#ff69b4';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(0, 15, 6, 8, 0, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        break;
+                    case 'frown':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, 25, 15, Math.PI + 0.3, 2 * Math.PI - 0.3);
+                        this.ctx.stroke();
+                        break;
+                }
+            }
+
+            drawAccessory(type) {
+                switch (type) {
+                    case 'glasses':
+                        this.ctx.strokeStyle = '#333';
+                        this.ctx.lineWidth = 3;
+                        this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                        // Left lens
+                        this.ctx.beginPath();
+                        this.ctx.arc(-15, -5, 12, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        // Right lens
+                        this.ctx.beginPath();
+                        this.ctx.arc(15, -5, 12, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        // Bridge
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-3, -5);
+                        this.ctx.lineTo(3, -5);
+                        this.ctx.stroke();
+                        break;
+                    case 'sunglasses':
+                        this.ctx.fillStyle = '#333';
+                        // Left lens
+                        this.ctx.beginPath();
+                        this.ctx.arc(-15, -5, 12, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        // Right lens
+                        this.ctx.beginPath();
+                        this.ctx.arc(15, -5, 12, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        // Frame
+                        this.ctx.strokeStyle = '#666';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.stroke();
+                        break;
+                    case 'hat':
+                        this.ctx.fillStyle = '#333';
+                        // Hat brim
+                        this.ctx.fillRect(-25, -20, 50, 5);
+                        // Hat top
+                        this.ctx.fillRect(-15, -35, 30, 20);
+                        break;
+                    case 'crown':
+                        this.ctx.fillStyle = '#ffd700';
+                        this.ctx.strokeStyle = '#ff8c00';
+                        this.ctx.lineWidth = 2;
+                        // Crown base
+                        this.ctx.fillRect(-20, -25, 40, 10);
+                        this.ctx.strokeRect(-20, -25, 40, 10);
+                        // Crown points
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-20, -25);
+                        this.ctx.lineTo(-15, -35);
+                        this.ctx.lineTo(-10, -25);
+                        this.ctx.lineTo(-5, -40);
+                        this.ctx.lineTo(0, -25);
+                        this.ctx.lineTo(5, -40);
+                        this.ctx.lineTo(10, -25);
+                        this.ctx.lineTo(15, -35);
+                        this.ctx.lineTo(20, -25);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        // Jewels
+                        this.ctx.fillStyle = '#ff0000';
+                        this.ctx.beginPath();
+                        this.ctx.arc(-10, -20, 2, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, -20, 2, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.beginPath();
+                        this.ctx.arc(10, -20, 2, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        break;
+                    case 'halo':
+                        this.ctx.strokeStyle = '#ffd700';
+                        this.ctx.lineWidth = 4;
+                        this.ctx.beginPath();
+                        this.ctx.arc(0, -30, 20, 0, 2 * Math.PI);
+                        this.ctx.stroke();
+                        // Glow effect
+                        this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                        this.ctx.lineWidth = 8;
+                        this.ctx.stroke();
+                        break;
+                    case 'horns':
+                        this.ctx.fillStyle = '#cc0000';
+                        this.ctx.strokeStyle = '#990000';
+                        this.ctx.lineWidth = 2;
+                        // Left horn
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(-15, -20);
+                        this.ctx.lineTo(-20, -35);
+                        this.ctx.lineTo(-10, -35);
+                        this.ctx.closePath();
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        // Right horn
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(15, -20);
+                        this.ctx.lineTo(20, -35);
+                        this.ctx.lineTo(10, -35);
+                        this.ctx.closePath();
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        break;
+                    case 'bow':
+                        this.ctx.fillStyle = '#ff69b4';
+                        this.ctx.strokeStyle = '#ff1493';
+                        this.ctx.lineWidth = 2;
+                        // Bow left
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(-10, -25, 8, 12, -0.3, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        // Bow right
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(10, -25, 8, 12, 0.3, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.stroke();
+                        // Bow center
+                        this.ctx.fillRect(-3, -30, 6, 10);
+                        this.ctx.strokeRect(-3, -30, 6, 10);
+                        break;
+                    case 'headband':
+                        this.ctx.fillStyle = '#ff69b4';
+                        this.ctx.strokeStyle = '#ff1493';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.fillRect(-25, -22, 50, 8);
+                        this.ctx.strokeRect(-25, -22, 50, 8);
+                        // Decorative elements
+                        this.ctx.fillStyle = '#ffd700';
+                        for (let i = -2; i <= 2; i++) {
+                            this.ctx.beginPath();
+                            this.ctx.arc(i * 8, -18, 2, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                        }
+                        break;
+                }
+            }
+
+            drawHeart(x, y, size) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, y + size/4);
+                this.ctx.quadraticCurveTo(x - size/2, y - size/4, x - size/4, y);
+                this.ctx.quadraticCurveTo(x, y + size/4, x + size/4, y);
+                this.ctx.quadraticCurveTo(x + size/2, y - size/4, x, y + size/4);
+                this.ctx.fill();
+            }
+
+            drawStar(x, y, size) {
+                this.ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                    const px = x + Math.cos(angle) * size;
+                    const py = y + Math.sin(angle) * size;
+                    if (i === 0) this.ctx.moveTo(px, py);
+                    else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath();
+                this.ctx.fill();
+            }
+
+            drawCircle() {
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, 25, 0, 2 * Math.PI);
+                this.ctx.fill();
+                this.ctx.stroke();
+            }
+
+            handleMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                this.lastPos = { x, y };
+                this.isDragging = true;
+
+                // Find clicked layer
+                const clickedLayer = this.getLayerAtPoint(x, y);
+                if (clickedLayer) {
+                    this.selectLayer(clickedLayer);
+                }
+            }
+
+            handleMouseMove(e) {
+                if (!this.isDragging || !this.selectedLayer) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const dx = x - this.lastPos.x;
+                const dy = y - this.lastPos.y;
+
+                switch (this.currentTool) {
+                    case 'move':
+                    case 'select':
+                        this.selectedLayer.x += dx;
+                        this.selectedLayer.y += dy;
+                        break;
+                    case 'scale':
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        this.selectedLayer.size += distance * (dx > 0 ? 0.5 : -0.5);
+                        this.selectedLayer.size = Math.max(10, Math.min(100, this.selectedLayer.size));
+                        break;
+                    case 'rotate':
+                        const angle = Math.atan2(dy, dx);
+                        this.selectedLayer.rotation += angle * 0.1;
+                        break;
+                }
+
+                this.lastPos = { x, y };
+                this.updateControls();
+                this.render();
+            }
+
+            handleMouseUp(e) {
+                this.isDragging = false;
+                if (this.selectedLayer) {
+                    this.saveState();
+                }
+            }
+
+            handleWheel(e) {
+                e.preventDefault();
+                if (this.selectedLayer) {
+                    const delta = e.deltaY > 0 ? -2 : 2;
+                    this.selectedLayer.size += delta;
+                    this.selectedLayer.size = Math.max(10, Math.min(100, this.selectedLayer.size));
+                    this.updateControls();
+                    this.render();
+                }
+            }
+
+            handleKeyDown(e) {
+                switch (e.key) {
+                    case 'Delete':
+                        if (this.selectedLayer) {
+                            this.deleteLayer(this.selectedLayer);
+                        }
+                        break;
+                    case 'Escape':
+                        this.selectedLayer = null;
+                        this.updateLayerList();
+                        this.render();
+                        break;
+                    case 'z':
+                        if (e.ctrlKey || e.metaKey) {
+                            this.undo();
+                        }
+                        break;
+                    case 'd':
+                        if (e.ctrlKey || e.metaKey) {
+                            e.preventDefault();
+                            if (this.selectedLayer) {
+                                this.duplicateLayer(this.selectedLayer);
+                            }
+                        }
+                        break;
+                }
+            }
+
+            getLayerAtPoint(x, y) {
+                // Check layers in reverse order (top to bottom)
+                for (let i = this.layers.length - 1; i >= 0; i--) {
+                    const layer = this.layers[i];
+                    const dx = x - layer.x;
+                    const dy = y - layer.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < layer.size) {
+                        return layer;
+                    }
+                }
+                return null;
+            }
+
+            moveLayerUp(index) {
+                if (index < this.layers.length - 1) {
+                    [this.layers[index], this.layers[index + 1]] = [this.layers[index + 1], this.layers[index]];
+                    this.updateLayerList();
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            moveLayerDown(index) {
+                if (index > 0) {
+                    [this.layers[index], this.layers[index - 1]] = [this.layers[index - 1], this.layers[index]];
+                    this.updateLayerList();
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            deleteLayer(layerOrIndex) {
+                const index = typeof layerOrIndex === 'number' ? layerOrIndex : this.layers.indexOf(layerOrIndex);
+                if (index !== -1) {
+                    this.layers.splice(index, 1);
+                    this.selectedLayer = null;
+                    this.updateLayerList();
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            duplicateLayer(layer) {
+                const newLayer = {
+                    ...layer,
+                    id: Date.now() + Math.random(),
+                    x: layer.x + 20,
+                    y: layer.y + 20
+                };
+                this.layers.push(newLayer);
+                this.selectedLayer = newLayer;
+                this.updateLayerList();
+                this.updateControls();
+                this.render();
+                this.saveState();
+            }
+
+            clearCanvas() {
+                this.layers = [];
+                this.selectedLayer = null;
+                this.updateLayerList();
+                this.render();
+                this.saveState();
+            }
+
+            loadPresets() {
+                this.presets = {
+                    happy: [
+                        { component: 'eyes', type: 'normal', x: 160, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'eyes', type: 'normal', x: 240, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'mouth', type: 'smile', x: 200, y: 220, size: 40, color: '#333', opacity: 1, rotation: 0 }
+                    ],
+                    wink: [
+                        { component: 'eyes', type: 'normal', x: 160, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'eyes', type: 'wink', x: 240, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'mouth', type: 'smile', x: 200, y: 220, size: 40, color: '#333', opacity: 1, rotation: 0 }
+                    ],
+                    cool: [
+                        { component: 'accessory', type: 'sunglasses', x: 200, y: 160, size: 50, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'mouth', type: 'neutral', x: 200, y: 220, size: 40, color: '#333', opacity: 1, rotation: 0 }
+                    ],
+                    love: [
+                        { component: 'eyes', type: 'heart', x: 160, y: 160, size: 30, color: '#ff69b4', opacity: 1, rotation: 0 },
+                        { component: 'eyes', type: 'heart', x: 240, y: 160, size: 30, color: '#ff69b4', opacity: 1, rotation: 0 },
+                        { component: 'mouth', type: 'kiss', x: 200, y: 220, size: 40, color: '#ff69b4', opacity: 1, rotation: 0 }
+                    ],
+                    laugh: [
+                        { component: 'eyes', type: 'closed', x: 160, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'eyes', type: 'closed', x: 240, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'mouth', type: 'laugh', x: 200, y: 220, size: 50, color: '#333', opacity: 1, rotation: 0 }
+                    ],
+                    thinking: [
+                        { component: 'eyes', type: 'normal', x: 160, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'eyes', type: 'normal', x: 240, y: 160, size: 30, color: '#333', opacity: 1, rotation: 0 },
+                        { component: 'mouth', type: 'neutral', x: 200, y: 220, size: 40, color: '#333', opacity: 1, rotation: 0 }
+                    ]
+                };
+            }
+
+            loadPreset(presetName) {
+                if (this.presets[presetName]) {
+                    this.layers = this.presets[presetName].map(layer => ({
+                        ...layer,
+                        id: Date.now() + Math.random()
+                    }));
+                    this.selectedLayer = null;
+                    this.updateLayerList();
+                    this.render();
+                    this.saveState();
+                }
+            }
+
+            saveState() {
+                const state = {
+                    layers: JSON.parse(JSON.stringify(this.layers)),
+                    timestamp: Date.now()
+                };
+                
+                this.history.push(state);
+                if (this.history.length > this.maxHistory) {
+                    this.history.shift();
+                }
+                
+                this.updateHistoryList();
+            }
+
+            undo() {
+                if (this.history.length > 1) {
+                    this.history.pop(); // Remove current state
+                    const previousState = this.history[this.history.length - 1];
+                    this.layers = JSON.parse(JSON.stringify(previousState.layers));
+                    this.selectedLayer = null;
+                    this.updateLayerList();
+                    this.render();
+                }
+            }
+
+            updateHistoryList() {
+                const historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+
+                this.history.slice(-5).reverse().forEach((state, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    
+                    const preview = document.createElement('canvas');
+                    preview.className = 'history-preview';
+                    preview.width = 40;
+                    preview.height = 40;
+                    
+                    const previewCtx = preview.getContext('2d');
+                    previewCtx.fillStyle = '#ffffff';
+                    previewCtx.fillRect(0, 0, 40, 40);
+                    
+                    // Draw mini preview
+                    state.layers.forEach(layer => {
+                        previewCtx.save();
+                        previewCtx.globalAlpha = layer.opacity;
+                        previewCtx.translate(layer.x * 0.1, layer.y * 0.1);
+                        previewCtx.scale(0.1, 0.1);
+                        previewCtx.fillStyle = layer.color;
+                        previewCtx.fillRect(-5, -5, 10, 10);
+                        previewCtx.restore();
+                    });
+                    
+                    const time = new Date(state.timestamp).toLocaleTimeString();
+                    item.innerHTML = `<span>Step ${this.history.length - index}</span><br><small>${time}</small>`;
+                    item.insertBefore(preview, item.firstChild);
+                    
+                    item.addEventListener('click', () => {
+                        this.layers = JSON.parse(JSON.stringify(state.layers));
+                        this.selectedLayer = null;
+                        this.updateLayerList();
+                        this.render();
+                    });
+                    
+                    historyList.appendChild(item);
+                });
+            }
+
+            clearHistory() {
+                this.history = [];
+                this.saveState();
+            }
+
+            addAnimation(type) {
+                if (this.selectedLayer) {
+                    this.selectedLayer.animation = type;
+                    this.updateLayerList();
+                    
+                    // Apply CSS animation to canvas
+                    this.canvas.classList.remove('floating', 'pulsing', 'bouncing');
+                    setTimeout(() => {
+                        this.canvas.classList.add(type + 'ing');
+                    }, 100);
+                }
+            }
+
+            exportAsPNG() {
+                // Create a temporary canvas for export
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = 400;
+                exportCanvas.height = 400;
+                const exportCtx = exportCanvas.getContext('2d');
+                
+                // Clear background
+                exportCtx.fillStyle = '#ffffff';
+                exportCtx.fillRect(0, 0, 400, 400);
+                
+                // Draw all layers without selection indicators
+                this.layers.forEach(layer => {
+                    exportCtx.save();
+                    exportCtx.globalAlpha = layer.opacity;
+                    exportCtx.translate(layer.x, layer.y);
+                    exportCtx.rotate(layer.rotation);
+                    exportCtx.scale(layer.size / 50, layer.size / 50);
+                    
+                    // Temporarily set context for drawing
+                    const originalCtx = this.ctx;
+                    this.ctx = exportCtx;
+                    this.drawComponent(layer);
+                    this.ctx = originalCtx;
+                    
+                    exportCtx.restore();
+                });
+                
+                // Download the image
+                const url = exportCanvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `custom-emoji-${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            exportAsSVG() {
+                let svgContent = `<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">`;
+                svgContent += `<rect width="400" height="400" fill="white"/>`;
+                
+                this.layers.forEach(layer => {
+                    const transform = `translate(${layer.x} ${layer.y}) rotate(${layer.rotation * 180 / Math.PI}) scale(${layer.size/50})`;
+                    
+                    svgContent += `<g transform="${transform}" opacity="${layer.opacity}">`;
+                    
+                    switch (layer.component) {
+                        case 'eyes':
+                            svgContent += this.getSVGEyes(layer.type, layer.color);
+                            break;
+                        case 'mouth':
+                            svgContent += this.getSVGMouth(layer.type, layer.color);
+                            break;
+                        case 'accessory':
+                            svgContent += this.getSVGAccessory(layer.type, layer.color);
+                            break;
+                        default:
+                            svgContent += `<circle cx="0" cy="0" r="25" fill="${layer.color}" stroke="#333" stroke-width="2"/>`;
+                    }
+                    
+                    svgContent += `</g>`;
+                });
+                
+                svgContent += `</svg>`;
+                
+                // Download the SVG
+                const blob = new Blob([svgContent], {type: 'image/svg+xml'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `custom-emoji-${Date.now()}.svg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            getSVGEyes(type, color) {
+                switch (type) {
+                    case 'normal':
+                        return `
+                            <circle cx="-12" cy="-5" r="5" fill="white" stroke="#333" stroke-width="2"/>
+                            <circle cx="12" cy="-5" r="5" fill="white" stroke="#333" stroke-width="2"/>
+                            <circle cx="-12" cy="-5" r="2" fill="#333"/>
+                            <circle cx="12" cy="-5" r="2" fill="#333"/>
+                        `;
+                    case 'wink':
+                        return `
+                            <circle cx="-12" cy="-5" r="5" fill="white" stroke="#333" stroke-width="2"/>
+                            <circle cx="-12" cy="-5" r="2" fill="#333"/>
+                            <path d="M5,-10 Q10,-5 20,-5" stroke="#333" stroke-width="3" fill="none"/>
+                        `;
+                    case 'closed':
+                        return `
+                            <path d="M-20,-5 A8,8 0 0,1 -4,-5" stroke="#333" stroke-width="3" fill="none"/>
+                            <path d="M4,-5 A8,8 0 0,1 20,-5" stroke="#333" stroke-width="3" fill="none"/>
+                        `;
+                    case 'heart':
+                        return `
+                            <path d="M-12,-5 Q-15,-10 -8,-8 T-12,-5" fill="${color}" stroke="#333" stroke-width="2"/>
+                            <path d="M12,-5 Q15,-10 8,-8 T12,-5" fill="${color}" stroke="#333" stroke-width="2"/>
+                        `;
+                    case 'star':
+                        return `
+                            <polygon points="-12,-8 -10,-2 -5,-2 -8,2 -10,8 -12,2 -14,8 -15,2 -19,-2 -14,-2" fill="${color}" stroke="#333" stroke-width="1"/>
+                            <polygon points="12,-8 10,-2 5,-2 8,2 10,8 12,2 14,8 15,2 19,-2 14,-2" fill="${color}" stroke="#333" stroke-width="1"/>
+                        `;
+                    default:
+                        return `<circle cx="0" cy="0" r="25" fill="${color}" stroke="#333" stroke-width="2"/>`;
+                }
+            }
+
+            getSVGMouth(type, color) {
+                switch (type) {
+                    case 'smile':
+                        return `<path d="M-15,5 A15,15 0 0,0 15,5" stroke="#333" stroke-width="3" fill="none"/>`;
+                    case 'laugh':
+                        return `
+                            <ellipse cx="0" cy="10" rx="20" ry="12" fill="#333"/>
+                            <rect x="-13" y="5" width="2" height="8" fill="white"/>
+                            <rect x="-9" y="5" width="2" height="8" fill="white"/>
+                            <rect x="-5" y="5" width="2" height="8" fill="white"/>
+                            <rect x="-1" y="5" width="2" height="8" fill="white"/>
+                            <rect x="3" y="5" width="2" height="8" fill="white"/>
+                            <rect x="7" y="5" width="2" height="8" fill="white"/>
+                            <rect x="11" y="5" width="2" height="8" fill="white"/>
+                        `;
+                    case 'kiss':
+                        return `<ellipse cx="0" cy="10" rx="8" ry="6" fill="${color}" stroke="#333" stroke-width="2"/>`;
+                    case 'neutral':
+                        return `<line x1="-10" y1="10" x2="10" y2="10" stroke="#333" stroke-width="3"/>`;
+                    case 'sad':
+                        return `<path d="M-15,20 A15,15 0 0,1 15,20" stroke="#333" stroke-width="3" fill="none"/>`;
+                    default:
+                        return `<circle cx="0" cy="0" r="25" fill="${color}" stroke="#333" stroke-width="2"/>`;
+                }
+            }
+
+            getSVGAccessory(type, color) {
+                switch (type) {
+                    case 'glasses':
+                        return `
+                            <circle cx="-15" cy="-5" r="12" fill="white" stroke="#333" stroke-width="3" fill-opacity="0.3"/>
+                            <circle cx="15" cy="-5" r="12" fill="white" stroke="#333" stroke-width="3" fill-opacity="0.3"/>
+                            <line x1="-3" y1="-5" x2="3" y2="-5" stroke="#333" stroke-width="3"/>
+                        `;
+                    case 'sunglasses':
+                        return `
+                            <circle cx="-15" cy="-5" r="12" fill="#333"/>
+                            <circle cx="15" cy="-5" r="12" fill="#333"/>
+                        `;
+                    case 'hat':
+                        return `
+                            <rect x="-25" y="-20" width="50" height="5" fill="#333"/>
+                            <rect x="-15" y="-35" width="30" height="20" fill="#333"/>
+                        `;
+                    default:
+                        return `<circle cx="0" cy="0" r="25" fill="${color}" stroke="#333" stroke-width="2"/>`;
+                }
+            }
+
+            saveProject() {
+                const project = JSON.stringify(this.layers);
+                const blob = new Blob([project], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `emoji-project-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            loadProject() {
+                document.getElementById('fileInput').click();
+            }
+
+            handleFileLoad(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const layers = JSON.parse(event.target.result);
+                        this.layers = layers;
+                        this.selectedLayer = null;
+                        this.updateLayerList();
+                        this.render();
+                        this.saveState();
+                    } catch (error) {
+                        alert('Error loading project: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Initialize the emoji builder
+        const emojiBuilder = new EmojiBuilder();
+    </script>
+</body>
+</html>
